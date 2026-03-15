@@ -6,7 +6,7 @@ A mobile-first web app for managing an orchestra: rehearsal attendance, season &
 
 - **Frontend**: React 18 + Vite, Tailwind CSS, Tiptap rich text editor
 - **Backend**: Node.js + Express, MySQL 8.0
-- **Auth**: JWT + email-based login codes (via [Resend](https://resend.com))
+- **Auth**: JWT + email-based login codes (via SMTP or [Resend](https://resend.com))
 - **Infrastructure**: Docker multi-stage build, NGINX reverse proxy, Let's Encrypt SSL
 - **i18n**: English, French, Dutch (Belgian locales)
 
@@ -45,7 +45,7 @@ A mobile-first web app for managing an orchestra: rehearsal attendance, season &
 ### General
 - **Mobile-first design**: Touch-friendly, responsive UI with dark mode
 - **Role-based access**: Four roles — musician, section leader, maestro, admin
-- **Email-only auth**: No passwords — everyone logs in via a 6-digit code sent by email
+- **Email-only auth**: No passwords — everyone logs in via a 6-digit code sent by email (SMTP or Resend)
 - **Multi-language**: Full support for EN, FR, NL with locale-aware date/time formatting
 - **Base64 images**: News cover images stored as data URIs in the DB for easy data migration
 
