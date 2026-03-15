@@ -165,4 +165,4 @@ Located in `backend/migrations/`. Tracked via a `schema_migrations` table for id
 
 ## License
 
-MIT
+Apache License 2.0 — see [LICENSE](LICENSE) for details.
