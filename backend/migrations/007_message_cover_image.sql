@@ -1,0 +1,1 @@
+ALTER TABLE messages ADD COLUMN cover_image VARCHAR(500) DEFAULT NULL AFTER body;

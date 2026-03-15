@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+
+# Environment / secrets
+.env
+.env.local
+.env.production
+
+# Build output
+dist/
+
+# Logs
+*.log
+
+# Database dumps
+*.sql
+!backend/migrations/*.sql
+
+# Shell scripts (deploy, db ops — personal config)
+*.sh
+
+# Nginx (use nginx.conf.example as template)
+nginx.conf
+
+# Archives
+*.tar.gz
+
+# Uploads (user-generated content)
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Built frontend served by backend
+backend/public/
+
+# Scraped content
+scraped-*.html
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Claude config (personal)
+.claude/

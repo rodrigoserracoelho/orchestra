@@ -1,0 +1,19 @@
+CREATE TABLE messages (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  body TEXT NOT NULL,
+  active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_by INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (created_by) REFERENCES users(id)
+);
+
+CREATE TABLE message_reads (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  message_id INT NOT NULL,
+  user_id INT NOT NULL,
+  read_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (message_id) REFERENCES messages(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  UNIQUE KEY unique_read (message_id, user_id)
+);

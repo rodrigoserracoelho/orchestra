@@ -1,0 +1,16 @@
+node_modules
+backend/node_modules
+frontend/node_modules
+backend/public
+backend/.env
+.env
+.git
+*.log
+*.sql
+!backend/migrations/*.sql
+*.tar.gz
+scraped-*.html
+.claude/
+.DS_Store
+.vscode/
+.idea/

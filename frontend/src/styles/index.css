@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Light mode defaults */
+body {
+  background-color: #f8f9fa;
+  color: #212529;
+}
+
+/* Dark mode body */
+.dark body,
+body.dark {
+  background-color: #111827;
+  color: #f3f4f6;
+}
+
+/* Status colors */
+.status-attending { color: #2b8a3e; background-color: #d3f9d8; }
+.status-not_attending { color: #c92a2a; background-color: #ffe3e3; }
+.status-maybe { color: #e67700; background-color: #fff3bf; }
+.status-none { color: #868e96; background-color: #f1f3f5; }
+
+/* Smooth transitions */
+button, a, input, select, textarea, .card {
+  transition: all 0.2s ease;
+}
+
+/* Theme transition on background/color */
+body, header, nav, main, div, section {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Tiptap editor content styles */
+.tiptap ul { list-style: disc; padding-left: 1.25rem; margin: 0.5em 0; }
+.tiptap ol { list-style: decimal; padding-left: 1.25rem; margin: 0.5em 0; }
+.tiptap h2 { font-size: 1.25rem; font-weight: 700; margin: 0.75em 0 0.25em; }
+.tiptap h3 { font-size: 1.1rem; font-weight: 600; margin: 0.5em 0 0.25em; }
+.tiptap p { margin: 0.25em 0; }
+.tiptap a { color: #4c6ef5; text-decoration: underline; }
+
+/* Touch-friendly tap targets */
+@media (max-width: 768px) {
+  button, .tap-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
