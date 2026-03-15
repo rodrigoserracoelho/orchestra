@@ -1,10 +1,10 @@
 # Orchestra Manager
 
-A mobile-first web app for managing an orchestra: rehearsal attendance, season & concert planning, musician management, news, and internal messaging. Built for the Philharmonique d'Uccle.
+A mobile-first web app for managing an orchestra: rehearsal attendance, season & concert planning, musician management, news, CMS pages, and internal messaging.
 
 ## Tech Stack
 
-- **Frontend**: React 18 + Vite, Tailwind CSS
+- **Frontend**: React 18 + Vite, Tailwind CSS, Tiptap rich text editor
 - **Backend**: Node.js + Express, MySQL 8.0
 - **Auth**: JWT + email-based login codes (via [Resend](https://resend.com))
 - **Infrastructure**: Docker multi-stage build, NGINX reverse proxy, Let's Encrypt SSL
@@ -16,19 +16,35 @@ A mobile-first web app for managing an orchestra: rehearsal attendance, season &
 - **Attendance**: Mark availability (Attending / Not Attending / Maybe) per rehearsal
 - **Season info**: View season details and concerts (maestro, venues with Google Maps links, dates)
 - **News feed**: Read orchestra news articles with cover images, mark as read
-- **Inbox**: Receive messages from admins
+- **Inbox**: Receive messages from admins and maestros
 - **Profile**: Manage instrument, part, phone, birthdate
+
+### For Maestros
+- **Season overview**: View rehearsals and concerts for assigned seasons
+- **Attendance tracking**: Expand any rehearsal to see who's attending, grouped by instrument section
+- **Messaging**: Send announcements to all musicians
+
+### For Section Leaders
+- **Section attendance**: View attendance for rehearsals in assigned seasons, grouped by instrument
 
 ### For Admins
 - **Season management**: Create seasons with concerts (date, venue, address), set fees, assign maestro
 - **Rehearsal planning**: Single or recurring rehearsals (auto-generated until concert date)
 - **Attendance overview**: View responses grouped by instrument section (violins split by part)
-- **Musician management**: Add/edit musicians, promote/demote roles, activate/deactivate, track payments
+- **Musician management**: Add/edit musicians, assign roles (musician, section leader, maestro, admin), activate/deactivate, track season fee payments
 - **News & Messages**: Publish articles (with cover images) and announcements, track read status
+- **CMS Pages**: Create and edit public-facing pages with a rich text editor (Tiptap)
 - **Dashboard**: Overview of active seasons, upcoming rehearsals, musician count
+
+### Public Site
+- **Home page**: Customizable via CMS
+- **Concerts**: Upcoming concerts with venue details and Google Maps links
+- **News**: Public news articles
+- **Custom pages**: Any page created via the CMS is accessible publicly
 
 ### General
 - **Mobile-first design**: Touch-friendly, responsive UI with dark mode
+- **Role-based access**: Four roles — musician, section leader, maestro, admin
 - **Email-only auth**: No passwords — everyone logs in via a 6-digit code sent by email
 - **Multi-language**: Full support for EN, FR, NL with locale-aware date/time formatting
 - **Base64 images**: News cover images stored as data URIs in the DB for easy data migration
@@ -72,31 +88,22 @@ npm run dev                   # starts on port 5173
 
 Open http://localhost:5173 in your browser.
 
+> **Dev mode**: When `NODE_ENV=development` and email sending fails, login codes are shown directly in the browser.
+
 ## Production Deployment
 
-The app is fully containerized with Docker. Two deployment scripts are included:
-
-### deploy.sh — LAN server
-
-Deploys to a local network server. Runs behind an existing reverse proxy on a subpath (`/orchestra/`).
+The app is fully containerized with Docker. Create your own deploy script or use Docker Compose directly:
 
 ```bash
-./deploy.sh
+cp .env.example .env          # fill in your production values
+cp nginx.conf.example nginx.conf  # replace yourdomain.com with your domain
+docker compose up -d --build
 ```
 
-### deploy-new.sh — OVH VPS
+### Deploy Modes
 
-Deploys to the public VPS at `philharmoniqueuccle.ovh`. Includes NGINX + SSL (Let's Encrypt with auto-renewal). Runs at the root path (`/`).
-
-```bash
-./deploy-new.sh
-```
-
-Two modes:
-1. **Erase data** — fresh install, wipes the database
-2. **Keep data** — rebuilds containers, preserves existing data
-
-On first deploy, SSL certificates are automatically provisioned via certbot.
+1. **Fresh install** — wipes the database, applies base schema + all migrations
+2. **Keep data** — preserves existing data, applies only pending migrations
 
 ### Docker Architecture
 
@@ -106,11 +113,15 @@ NGINX (80/443) → App container (3001) → MySQL (3306)
   certbot (auto-renewal via cron)
 ```
 
+### SSL
+
+The included `nginx.conf.example` is configured for Let's Encrypt SSL. On first deploy, obtain certificates using certbot with the webroot method.
+
 ## Database
 
 ### Migrations
 
-Located in `backend/migrations/`. Applied automatically on container start.
+Located in `backend/migrations/`. Tracked via a `schema_migrations` table for idempotent application.
 
 | File | Description |
 |------|-------------|
@@ -122,13 +133,8 @@ Located in `backend/migrations/`. Applied automatically on container start.
 | 008 | News/articles system |
 | 009 | Email log and user sessions (online status) |
 | 010 | News cover images as base64 (MEDIUMTEXT) |
-
-### Data Transfer Scripts
-
-```bash
-./db-import.sh    # Dump remote DB → local orchestra_dump.sql
-./db-export.sh    # Upload orchestra_dump.sql → another remote and import
-```
+| 011 | CMS pages |
+| 012 | Maestro & section leader roles (role enum + season maestro FK) |
 
 ## Project Structure
 
@@ -139,23 +145,24 @@ Located in `backend/migrations/`. Applied automatically on container start.
 │   │   ├── controllers/    # Route handlers
 │   │   ├── middleware/      # Auth, file upload
 │   │   ├── models/         # Data access (MySQL queries)
-│   │   ├── routes/         # API routes (admin, musician, auth)
+│   │   ├── routes/         # API routes (admin, musician, maestro, section-leader, public, auth)
 │   │   └── services/       # Email, auth code services
 │   ├── migrations/         # SQL migration files
 │   └── server.js           # Express entry point
 ├── frontend/
 │   ├── src/
-│   │   ├── components/     # Shared components (Layout, RichEditor)
-│   │   ├── context/        # Auth, Language providers
+│   │   ├── components/     # Shared components (Header, RichTextEditor, PublicLayout)
+│   │   ├── context/        # Auth, Language, Theme providers
 │   │   ├── pages/          # All page components
 │   │   ├── services/       # API client (axios)
 │   │   └── translations/   # en.json, fr.json, nl.json
 │   └── index.html
+├── .env.example            # Environment variables template
 ├── Dockerfile              # Multi-stage build (frontend + backend)
 ├── docker-compose.yml      # MySQL + App + NGINX + Certbot
-├── nginx.conf              # SSL termination + reverse proxy
-├── deploy.sh               # LAN deployment
-├── deploy-new.sh           # VPS deployment (with SSL)
-├── db-import.sh            # Import DB from remote
-└── db-export.sh            # Export DB to remote
+└── nginx.conf.example      # SSL termination + reverse proxy template
 ```
+
+## License
+
+MIT
