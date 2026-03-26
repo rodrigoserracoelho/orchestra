@@ -168,19 +168,27 @@ export default function MusicianDashboard() {
             </div>
           ) : (
             <div className="space-y-3">
-              <p className="text-sm text-gray-500 dark:text-gray-400">{tp('musicianDashboard.rehearsals', rehearsals.length)}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{tp('musicianDashboard.events', rehearsals.length)}</p>
               {rehearsals.map((rehearsal) => {
                 const currentStatus = myAttendance[rehearsal.id];
                 const statusConf = currentStatus ? STATUS_CONFIG[currentStatus] : null;
                 const isUpdating = updating === rehearsal.id;
                 const past = isPast(rehearsal.rehearsal_date);
+                const isConcert = !!rehearsal.concert_id;
 
                 return (
-                  <div key={rehearsal.id} className={`bg-white dark:bg-gray-800 rounded-2xl shadow-sm border ${statusConf ? statusConf.border : 'border-gray-100 dark:border-gray-700'} overflow-hidden ${past ? 'opacity-60' : ''}`}>
+                  <div key={rehearsal.id} className={`rounded-2xl shadow-sm border overflow-hidden ${past ? 'opacity-60' : ''} ${
+                    isConcert
+                      ? `bg-indigo-50 dark:bg-indigo-950/40 ${statusConf ? statusConf.border : 'border-indigo-200 dark:border-indigo-800'}`
+                      : `bg-white dark:bg-gray-800 ${statusConf ? statusConf.border : 'border-gray-100 dark:border-gray-700'}`
+                  }`}>
                     <div className="p-4">
                       <div className="flex justify-between items-start mb-2">
                         <div>
-                          <h3 className="font-semibold text-gray-800 dark:text-gray-100">{rehearsal.title}</h3>
+                          <div className="flex items-center gap-2">
+                            {isConcert && <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 font-semibold">{t('musicianDashboard.concert')}</span>}
+                            <h3 className="font-semibold text-gray-800 dark:text-gray-100">{rehearsal.title}</h3>
+                          </div>
                           {past && <span className="text-xs text-gray-400 dark:text-gray-500 italic">{t('musicianDashboard.past')}</span>}
                         </div>
                         {statusConf && (
@@ -194,8 +202,18 @@ export default function MusicianDashboard() {
                         <span className="flex items-center gap-1">&#128197; {formatDate(rehearsal.rehearsal_date)}</span>
                         <span className="flex items-center gap-1">&#128336; {formatTime(rehearsal.rehearsal_date)}</span>
                         {rehearsal.location && <span className="flex items-center gap-1">&#128205; {rehearsal.location}</span>}
-                        <span className="flex items-center gap-1">&#9201; {rehearsal.duration_minutes} {t('common.min')}</span>
+                        {!isConcert && <span className="flex items-center gap-1">&#9201; {rehearsal.duration_minutes} {t('common.min')}</span>}
                       </div>
+
+                      {isConcert && rehearsal.concert_venue_address && (
+                        <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                          <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(rehearsal.concert_venue_address)}`}
+                            target="_blank" rel="noopener noreferrer"
+                            className="underline hover:text-primary-600 dark:hover:text-primary-400">
+                            {rehearsal.concert_venue_address}
+                          </a>
+                        </div>
+                      )}
 
                       <div className="flex flex-wrap gap-2 mt-4">
                         {Object.entries(STATUS_CONFIG).map(([status, conf]) => (

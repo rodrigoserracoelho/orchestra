@@ -33,10 +33,10 @@ function ProtectedRoute({ children, roles }) {
 function DashboardRouter() {
   const { user, viewMode } = useAuth();
   if (!user) return <Navigate to="/login" />;
-  if (user.role === 'admin' && viewMode === 'admin') return <AdminDashboard />;
-  if (user.role === 'admin' && viewMode === 'musician') return <MusicianDashboard />;
-  if (user.role === 'maestro') return <MaestroDashboard />;
-  if (user.role === 'section_leader') return <SectionLeaderDashboard />;
+  if (viewMode === 'musician') return <MusicianDashboard />;
+  if (viewMode === 'admin') return <AdminDashboard />;
+  if (viewMode === 'maestro') return <MaestroDashboard />;
+  if (viewMode === 'section_leader') return <SectionLeaderDashboard />;
   return <MusicianDashboard />;
 }
 

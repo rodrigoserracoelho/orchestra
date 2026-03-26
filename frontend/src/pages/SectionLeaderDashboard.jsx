@@ -102,17 +102,23 @@ export default function SectionLeaderDashboard() {
           {[...upcomingRehearsals, ...pastRehearsals].map((r) => {
             const isPast = new Date(r.rehearsal_date) < now;
             const isSelected = selectedRehearsal === r.id;
+            const isConcert = !!r.concert_id;
             return (
               <div key={r.id}>
                 <button onClick={() => loadAttendance(r.id)}
-                  className={`w-full text-left bg-white dark:bg-gray-800 shadow-sm border p-3 transition-colors ${
+                  className={`w-full text-left shadow-sm border p-3 transition-colors ${
+                    isConcert ? 'bg-indigo-50 dark:bg-indigo-950/40' : 'bg-white dark:bg-gray-800'
+                  } ${
                     isSelected
                       ? 'border-primary-400 dark:border-primary-500 rounded-t-xl rounded-b-none'
-                      : 'border-gray-100 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 rounded-xl'
+                      : `${isConcert ? 'border-indigo-200 dark:border-indigo-800' : 'border-gray-100 dark:border-gray-700'} hover:border-gray-300 dark:hover:border-gray-600 rounded-xl`
                   } ${isPast ? 'opacity-60' : ''}`}>
                   <div className="flex justify-between items-center">
                     <div>
-                      <p className="text-sm font-medium text-gray-800 dark:text-gray-100">{r.title}</p>
+                      <p className="text-sm font-medium text-gray-800 dark:text-gray-100">
+                        {isConcert && <span className="inline-block text-xs px-1.5 py-0.5 mr-1.5 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 font-semibold">{t('musicianDashboard.concert')}</span>}
+                        {r.title}
+                      </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
                         {formatDate(r.rehearsal_date)} &middot; {formatTime(r.rehearsal_date)}
                         {r.location && <span className="ml-2">&#128205; {r.location}</span>}

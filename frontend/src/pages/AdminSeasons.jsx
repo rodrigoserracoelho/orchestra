@@ -55,6 +55,7 @@ export default function AdminSeasons() {
       season_fee: season.season_fee || '',
       concerts: season.concerts && season.concerts.length > 0
         ? season.concerts.map((c) => ({
+            id: c.id,
             concert_date: c.concert_date.split('T')[0],
             label: c.label || '',
             venue: c.venue || '',

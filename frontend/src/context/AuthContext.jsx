@@ -6,7 +6,7 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState('admin'); // 'admin' | 'musician' — only relevant for admins
+  const [viewMode, setViewMode] = useState('role'); // 'role' | 'musician' — for admin, maestro, section_leader
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -63,7 +63,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, loginWithToken, logout, refreshUser, isAdmin: user?.role === 'admin', isMaestro: user?.role === 'maestro', isSectionLeader: user?.role === 'section_leader', viewMode: user?.role === 'admin' ? viewMode : user?.role || 'musician', setViewMode }}>
+    <AuthContext.Provider value={{ user, loading, loginWithToken, logout, refreshUser, isAdmin: user?.role === 'admin', isMaestro: user?.role === 'maestro', isSectionLeader: user?.role === 'section_leader', hasRoleSwitch: ['admin', 'maestro', 'section_leader'].includes(user?.role), viewMode: viewMode === 'musician' ? 'musician' : (user?.role === 'admin' ? 'admin' : user?.role || 'musician'), setViewMode }}>
       {children}
     </AuthContext.Provider>
   );

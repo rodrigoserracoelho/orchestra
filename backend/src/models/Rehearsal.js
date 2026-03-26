@@ -3,9 +3,11 @@ const { pool } = require('../config/database');
 const Rehearsal = {
   async findById(id) {
     const [rows] = await pool.execute(
-      `SELECT r.*, s.name as season_name
+      `SELECT r.*, s.name as season_name,
+              c.venue as concert_venue, c.venue_address as concert_venue_address
        FROM rehearsals r
        JOIN seasons s ON r.season_id = s.id
+       LEFT JOIN concerts c ON r.concert_id = c.id
        WHERE r.id = ?`,
       [id]
     );
@@ -14,9 +16,11 @@ const Rehearsal = {
 
   async findBySeasonId(seasonId) {
     const [rows] = await pool.execute(
-      `SELECT r.*, s.name as season_name
+      `SELECT r.*, s.name as season_name,
+              c.venue as concert_venue, c.venue_address as concert_venue_address
        FROM rehearsals r
        JOIN seasons s ON r.season_id = s.id
+       LEFT JOIN concerts c ON r.concert_id = c.id
        WHERE r.season_id = ?
        ORDER BY r.rehearsal_date ASC`,
       [seasonId]

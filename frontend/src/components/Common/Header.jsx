@@ -6,7 +6,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import apiClient from '../../services/apiClient';
 
 export default function Header() {
-  const { user, logout, isAdmin, viewMode, setViewMode } = useAuth();
+  const { user, logout, hasRoleSwitch, viewMode, setViewMode } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { t, cycleLanguage, currentLang } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -27,7 +27,7 @@ export default function Header() {
   }, [location.pathname]);
 
   const handleViewSwitch = () => {
-    setViewMode(viewMode === 'admin' ? 'musician' : 'admin');
+    setViewMode(viewMode === 'musician' ? 'role' : 'musician');
     setMenuOpen(false);
     navigate('/');
   };
@@ -66,9 +66,10 @@ export default function Header() {
   ];
 
   const getLinks = () => {
-    if (isAdmin && viewMode === 'admin') return adminLinks;
-    if (user?.role === 'maestro') return maestroLinks;
-    if (user?.role === 'section_leader') return sectionLeaderLinks;
+    if (viewMode === 'musician') return musicianLinks;
+    if (viewMode === 'admin') return adminLinks;
+    if (viewMode === 'maestro') return maestroLinks;
+    if (viewMode === 'section_leader') return sectionLeaderLinks;
     return musicianLinks;
   };
 
@@ -125,17 +126,17 @@ export default function Header() {
           </button>
 
           <Link to="/profile" className="text-sm text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hidden sm:inline">{user?.name}</Link>
-          {isAdmin && (
+          {hasRoleSwitch && (
             <button
               onClick={handleViewSwitch}
               className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${
-                viewMode === 'admin'
-                  ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-900/60'
-                  : 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900/60'
+                viewMode === 'musician'
+                  ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900/60'
+                  : 'bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-900/60'
               }`}
-              title={viewMode === 'admin' ? t('nav.switchToMusician') : t('nav.switchToAdmin')}
+              title={viewMode === 'musician' ? t('nav.switchToRole') : t('nav.switchToMusician')}
             >
-              {viewMode === 'admin' ? t('common.admin') : t('common.musician')}
+              {viewMode === 'musician' ? t('common.musician') : t(`common.${user?.role}`)}
             </button>
           )}
           <button onClick={logout} className="text-sm text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 px-3 py-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20">
@@ -186,12 +187,12 @@ export default function Header() {
           >
             {t('nav.myProfile')}
           </Link>
-          {isAdmin && (
+          {hasRoleSwitch && (
             <button
               onClick={handleViewSwitch}
               className="block w-full text-left py-2.5 px-3 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
             >
-              {viewMode === 'admin' ? t('nav.switchToMusician') : t('nav.switchToAdmin')}
+              {viewMode === 'musician' ? t('nav.switchToRole') : t('nav.switchToMusician')}
             </button>
           )}
         </nav>

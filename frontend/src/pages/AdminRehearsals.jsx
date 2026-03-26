@@ -367,30 +367,46 @@ export default function AdminRehearsals() {
         </div>
       ) : (
         <div className="space-y-3">
-          {rehearsals.map((r) => (
-            <div key={r.id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4">
+          {rehearsals.map((r) => {
+            const isConcert = !!r.concert_id;
+            return (
+            <div key={r.id} className={`rounded-2xl shadow-sm border p-4 ${
+              isConcert
+                ? 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-200 dark:border-indigo-800'
+                : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700'
+            }`}>
               <div className="flex justify-between items-start">
                 <div>
-                  <h3 className="font-semibold text-gray-800 dark:text-gray-100">{r.title}</h3>
+                  <h3 className="font-semibold text-gray-800 dark:text-gray-100">
+                    {isConcert && <span className="inline-block text-xs px-1.5 py-0.5 mr-1.5 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 font-semibold">{t('musicianDashboard.concert')}</span>}
+                    {r.title}
+                  </h3>
                   <div className="flex flex-wrap gap-2 mt-2 text-xs text-gray-500 dark:text-gray-400">
                     <span>&#128197; {formatDate(r.rehearsal_date)}</span>
                     <span>&#128336; {formatTime(r.rehearsal_date)}</span>
                     {r.location && <span>&#128205; {r.location}</span>}
-                    <span>&#9201; {r.duration_minutes} {t('common.min')}</span>
+                    {!isConcert && <span>&#9201; {r.duration_minutes} {t('common.min')}</span>}
                   </div>
                   {r.notes && <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{r.notes}</p>}
                 </div>
-                <div className="flex gap-1">
-                  <button onClick={() => handleEdit(r)} className="p-2 text-gray-400 dark:text-gray-500 hover:text-primary-600 hover:bg-primary-50 dark:hover:text-primary-400 dark:hover:bg-primary-900/30 rounded-lg text-sm">&#9999;&#65039;</button>
-                  <button onClick={() => handleDelete(r.id)} className="p-2 text-gray-400 dark:text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-900/30 rounded-lg text-sm">&#128465;&#65039;</button>
-                </div>
+                {!isConcert && (
+                  <div className="flex gap-1">
+                    <button onClick={() => handleEdit(r)} className="p-2 text-gray-400 dark:text-gray-500 hover:text-primary-600 hover:bg-primary-50 dark:hover:text-primary-400 dark:hover:bg-primary-900/30 rounded-lg text-sm">&#9999;&#65039;</button>
+                    <button onClick={() => handleDelete(r.id)} className="p-2 text-gray-400 dark:text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-900/30 rounded-lg text-sm">&#128465;&#65039;</button>
+                  </div>
+                )}
               </div>
               <Link to={`/admin/rehearsals/${r.id}/attendance`}
-                className="block mt-3 text-center py-2 rounded-xl bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 text-sm font-medium hover:bg-primary-100 dark:hover:bg-primary-900/50">
+                className={`block mt-3 text-center py-2 rounded-xl text-sm font-medium ${
+                  isConcert
+                    ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-900/60'
+                    : 'bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-primary-900/50'
+                }`}>
                 {t('adminRehearsals.viewAttendance')}
               </Link>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

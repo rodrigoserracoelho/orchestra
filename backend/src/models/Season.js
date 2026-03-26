@@ -98,12 +98,40 @@ const Season = {
   },
 
   async replaceConcerts(seasonId, concerts) {
-    await pool.execute('DELETE FROM concerts WHERE season_id = ?', [seasonId]);
+    const [existing] = await pool.execute('SELECT id FROM concerts WHERE season_id = ?', [seasonId]);
+    const existingIds = existing.map((c) => c.id);
+    const incomingIds = concerts.filter((c) => c.id).map((c) => c.id);
+
+    // Delete removed concerts (CASCADE deletes linked rehearsals + attendance)
+    const toDelete = existingIds.filter((id) => !incomingIds.includes(id));
+    for (const id of toDelete) {
+      await pool.execute('DELETE FROM concerts WHERE id = ?', [id]);
+    }
+
     for (const c of concerts) {
-      await pool.execute(
-        'INSERT INTO concerts (season_id, concert_date, label, venue, venue_address) VALUES (?, ?, ?, ?, ?)',
-        [seasonId, c.concert_date, c.label || null, c.venue || null, c.venue_address || null]
-      );
+      if (c.id && existingIds.includes(c.id)) {
+        // Update existing concert
+        await pool.execute(
+          'UPDATE concerts SET concert_date = ?, label = ?, venue = ?, venue_address = ? WHERE id = ?',
+          [c.concert_date, c.label || null, c.venue || null, c.venue_address || null, c.id]
+        );
+        // Update linked rehearsal
+        await pool.execute(
+          'UPDATE rehearsals SET title = ?, location = ?, rehearsal_date = ? WHERE concert_id = ?',
+          [c.label || 'Concert', c.venue || null, c.concert_date, c.id]
+        );
+      } else {
+        // Insert new concert
+        const [result] = await pool.execute(
+          'INSERT INTO concerts (season_id, concert_date, label, venue, venue_address) VALUES (?, ?, ?, ?, ?)',
+          [seasonId, c.concert_date, c.label || null, c.venue || null, c.venue_address || null]
+        );
+        // Create linked rehearsal entry for attendance tracking
+        await pool.execute(
+          'INSERT INTO rehearsals (season_id, title, location, rehearsal_date, duration_minutes, concert_id) VALUES (?, ?, ?, ?, ?, ?)',
+          [seasonId, c.label || 'Concert', c.venue || null, c.concert_date, 180, result.insertId]
+        );
+      }
     }
   },
 };

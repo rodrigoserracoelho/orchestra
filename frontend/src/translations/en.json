@@ -36,6 +36,7 @@
     "news": "News",
     "switchToMusician": "Switch to Musician View",
     "switchToAdmin": "Switch to Admin View",
+    "switchToRole": "Switch to My Role",
     "pages": "Pages"
   },
   "login": {
@@ -67,6 +68,9 @@
     "seasonFee": "Season fee ({{amount}} \u20ac):",
     "rehearsals": "{{count}} rehearsal",
     "rehearsals_plural": "{{count}} rehearsals",
+    "events": "{{count}} event",
+    "events_plural": "{{count}} events",
+    "concert": "Concert",
     "past": "Past",
     "seasonInfo": "Season Info",
     "maestro": "Maestro",

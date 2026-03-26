@@ -36,6 +36,7 @@
     "news": "Actualit\u00e9s",
     "switchToMusician": "Passer en vue Musicien",
     "switchToAdmin": "Passer en vue Admin",
+    "switchToRole": "Retour à mon rôle",
     "pages": "Pages"
   },
   "login": {
@@ -65,9 +66,12 @@
     "noSeasons": "Aucune saison disponible pour le moment.",
     "checkBack": "Revenez plus tard !",
     "seasonFee": "Cotisation ({{amount}} \u20ac) :",
-    "rehearsals": "{{count}} r\u00e9p\u00e9tition",
-    "rehearsals_plural": "{{count}} r\u00e9p\u00e9titions",
-    "past": "Pass\u00e9e",
+    "rehearsals": "{{count}} répétition",
+    "rehearsals_plural": "{{count}} répétitions",
+    "events": "{{count}} événement",
+    "events_plural": "{{count}} événements",
+    "concert": "Concert",
+    "past": "Passée",
     "seasonInfo": "Infos saison",
     "maestro": "Chef d'orchestre",
     "concerts": "Concerts",

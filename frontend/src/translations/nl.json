@@ -36,6 +36,7 @@
     "news": "Nieuws",
     "switchToMusician": "Naar muzikantweergave",
     "switchToAdmin": "Naar adminweergave",
+    "switchToRole": "Terug naar mijn rol",
     "pages": "Pagina's"
   },
   "login": {
@@ -67,6 +68,9 @@
     "seasonFee": "Seizoensbijdrage ({{amount}} \u20ac):",
     "rehearsals": "{{count}} repetitie",
     "rehearsals_plural": "{{count}} repetities",
+    "events": "{{count}} evenement",
+    "events_plural": "{{count}} evenementen",
+    "concert": "Concert",
     "past": "Voorbij",
     "seasonInfo": "Seizoensinfo",
     "maestro": "Dirigent",
