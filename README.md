@@ -13,7 +13,7 @@ A mobile-first web app for managing an orchestra: rehearsal attendance, season &
 ## Features
 
 ### For Musicians
-- **Attendance**: Mark availability (Attending / Not Attending / Maybe) per rehearsal
+- **Attendance**: Mark availability (Attending / Not Attending / Maybe) per rehearsal and concert
 - **Season info**: View season details and concerts (maestro, venues with Google Maps links, dates)
 - **News feed**: Read orchestra news articles with cover images, mark as read
 - **Inbox**: Receive messages from admins and maestros
@@ -44,7 +44,7 @@ A mobile-first web app for managing an orchestra: rehearsal attendance, season &
 
 ### General
 - **Mobile-first design**: Touch-friendly, responsive UI with dark mode
-- **Role-based access**: Four roles — musician, section leader, maestro, admin
+- **Role-based access**: Four roles — musician, section leader, maestro, admin — with view switching (e.g. maestros can switch to musician view to register their own attendance)
 - **Email-only auth**: No passwords — everyone logs in via a 6-digit code sent by email (SMTP or Resend)
 - **Multi-language**: Full support for EN, FR, NL with locale-aware date/time formatting
 - **Base64 images**: News cover images stored as data URIs in the DB for easy data migration
@@ -135,6 +135,7 @@ Located in `backend/migrations/`. Tracked via a `schema_migrations` table for id
 | 010 | News cover images as base64 (MEDIUMTEXT) |
 | 011 | CMS pages |
 | 012 | Maestro & section leader roles (role enum + season maestro FK) |
+| 013 | Concert attendance (links concerts to rehearsal entries for attendance tracking) |
 
 ## Project Structure
 
