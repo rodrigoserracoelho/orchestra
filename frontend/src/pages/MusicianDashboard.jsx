@@ -205,6 +205,10 @@ export default function MusicianDashboard() {
                         {!isConcert && <span className="flex items-center gap-1">&#9201; {rehearsal.duration_minutes} {t('common.min')}</span>}
                       </div>
 
+                      {rehearsal.notes && (
+                        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">&#128221; {rehearsal.notes}</p>
+                      )}
+
                       {isConcert && rehearsal.concert_venue_address && (
                         <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                           <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(rehearsal.concert_venue_address)}`}
