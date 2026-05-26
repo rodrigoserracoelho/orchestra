@@ -90,6 +90,8 @@ Open http://localhost:5173 in your browser.
 
 > **Dev mode**: When `NODE_ENV=development` and email sending fails, login codes are shown directly in the browser.
 
+> **First login**: The seed creates an admin user (`maestro@orchestra.com`) plus sample musicians (`violin1@orchestra.com`, `viola1@orchestra.com`, etc.). Enter any of these on the login page to receive a 6-digit code.
+
 ## Production Deployment
 
 The app is fully containerized with Docker. Create your own deploy script or use Docker Compose directly:
