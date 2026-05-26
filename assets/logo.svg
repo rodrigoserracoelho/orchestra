@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Orchestra Manager">
+  <defs>
+    <clipPath id="ca">
+      <circle cx="128" cy="128" r="64"/>
+    </clipPath>
+  </defs>
+  <rect width="256" height="256" rx="56" fill="#f0f4ff"/>
+  <circle cx="128" cy="128" r="72" stroke="#3b5bdb" stroke-width="14" fill="none"/>
+  <g stroke="#3b5bdb" stroke-width="4" fill="none" stroke-linecap="round" clip-path="url(#ca)">
+    <path d="M 50 96  Q 128 60,  206 96"/>
+    <path d="M 50 116 Q 128 80,  206 116"/>
+    <path d="M 50 136 Q 128 100, 206 136"/>
+    <path d="M 50 156 Q 128 120, 206 156"/>
+    <path d="M 50 176 Q 128 140, 206 176"/>
+  </g>
+</svg>

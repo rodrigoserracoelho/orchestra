@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.svg" alt="Orchestra Manager" width="140">
+</p>
+
 # Orchestra Manager
 
 A mobile-first web app for managing an orchestra: rehearsal attendance, season & concert planning, musician management, news, CMS pages, and internal messaging.
