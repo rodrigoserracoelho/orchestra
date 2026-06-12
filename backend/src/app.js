@@ -10,6 +10,7 @@ const musicianRoutes = require('./routes/musician');
 const publicRoutes = require('./routes/public');
 const maestroRoutes = require('./routes/maestro');
 const sectionLeaderRoutes = require('./routes/sectionLeader');
+const paymentRoutes = require('./routes/payments');
 
 const app = express();
 
@@ -46,6 +47,7 @@ app.use('/api/musician', musicianRoutes);
 app.use('/api/maestro', maestroRoutes);
 app.use('/api/section-leader', sectionLeaderRoutes);
 app.use('/api/public', publicRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));

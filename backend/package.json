@@ -17,6 +17,7 @@
     "express": "^4.18.2",
     "express-rate-limit": "^7.1.4",
     "jsonwebtoken": "^9.0.2",
+    "@mollie/api-client": "^3.7.0",
     "multer": "^2.1.1",
     "mysql2": "^3.6.5",
     "nodemailer": "^8.0.1",

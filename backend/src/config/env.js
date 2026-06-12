@@ -28,4 +28,9 @@ module.exports = {
     from: process.env.EMAIL_FROM || 'Orchestra <onboarding@resend.dev>',
   },
   frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
+  backendUrl: process.env.BACKEND_URL || 'http://localhost:3001',
+  mollie: {
+    apiKey: process.env.MOLLIE_API_KEY,
+  },
+  paymentsEnabled: process.env.PAYMENTS_ENABLED === 'true',
 };

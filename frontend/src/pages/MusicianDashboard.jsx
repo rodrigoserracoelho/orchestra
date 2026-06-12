@@ -15,6 +15,8 @@ export default function MusicianDashboard() {
   const [updating, setUpdating] = useState(null);
   const [paymentStatus, setPaymentStatus] = useState({});
   const [showSeasonDetail, setShowSeasonDetail] = useState(false);
+  const [payInProgress, setPayInProgress] = useState(false);
+  const [paymentsEnabled, setPaymentsEnabled] = useState(false);
 
   const STATUS_CONFIG = {
     attending: { label: t('attendance.attending'), bg: 'bg-green-50 dark:bg-green-900/30', border: 'border-green-200 dark:border-green-800', text: 'text-green-700 dark:text-green-400', btnBg: 'bg-green-500 hover:bg-green-600' },
@@ -30,11 +32,13 @@ export default function MusicianDashboard() {
 
   const loadInitial = async () => {
     try {
-      const [seasonsRes, attendanceRes, paymentsRes] = await Promise.all([
+      const [seasonsRes, attendanceRes, paymentsRes, configRes] = await Promise.all([
         apiClient.get('/musician/seasons'),
         apiClient.get('/musician/attendance'),
         apiClient.get('/musician/payments'),
+        apiClient.get('/musician/config'),
       ]);
+      setPaymentsEnabled(!!configRes.data.data.paymentsEnabled);
 
       const allSeasons = seasonsRes.data.data;
       setSeasons(allSeasons);
@@ -83,6 +87,18 @@ export default function MusicianDashboard() {
       console.error('Failed to update attendance:', error);
     } finally {
       setUpdating(null);
+    }
+  };
+
+  const handlePayNow = async (seasonId) => {
+    setPayInProgress(true);
+    try {
+      const res = await apiClient.post(`/musician/payments/${seasonId}/initiate`);
+      window.location.href = res.data.data.checkoutUrl;
+    } catch (error) {
+      console.error('Pay now error:', error);
+      alert(t('payment.startFailed'));
+      setPayInProgress(false);
     }
   };
 
@@ -145,13 +161,22 @@ export default function MusicianDashboard() {
             if (!s || !s.season_fee) return null;
             const paid = paymentStatus[selectedSeason];
             return (
-              <div className={`mb-4 flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium ${
+              <div className={`mb-4 flex flex-wrap items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium ${
                 paid
                   ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800'
                   : 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800'
               }`}>
                 <span>{paid ? '\u2705' : '\u274c'}</span>
-                <span>{t('musicianDashboard.seasonFee', { amount: Number(s.season_fee).toFixed(2) })} <strong>{paid ? t('common.paid') : t('common.notPaid')}</strong></span>
+                <span className="flex-1">{t('musicianDashboard.seasonFee', { amount: Number(s.season_fee).toFixed(2) })} <strong>{paid ? t('common.paid') : t('common.notPaid')}</strong></span>
+                {!paid && paymentsEnabled && (
+                  <button
+                    onClick={() => handlePayNow(selectedSeason)}
+                    disabled={payInProgress}
+                    className="px-3 py-1.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold disabled:opacity-60"
+                  >
+                    {payInProgress ? t('payment.redirecting') : t('payment.payNow')}
+                  </button>
+                )}
               </div>
             );
           })()}

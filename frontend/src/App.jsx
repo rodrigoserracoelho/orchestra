@@ -15,6 +15,7 @@ import MusicianNews from './pages/MusicianNews';
 import MaestroDashboard from './pages/MaestroDashboard';
 import SectionLeaderDashboard from './pages/SectionLeaderDashboard';
 import ProfilePage from './pages/ProfilePage';
+import PaymentReturn from './pages/PaymentReturn';
 import Header from './components/Common/Header';
 import PublicLayout from './components/Public/PublicLayout';
 import PublicHome from './pages/PublicHome';
@@ -87,6 +88,9 @@ export default function App() {
 
                 {/* Profile (any authenticated user) */}
                 <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+
+                {/* Payment return (after Mollie checkout) */}
+                <Route path="/payment/return" element={<ProtectedRoute><PaymentReturn /></ProtectedRoute>} />
 
                 <Route path="*" element={<Navigate to="/" />} />
               </Routes>

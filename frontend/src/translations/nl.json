@@ -61,6 +61,21 @@
     "codeSentTo": "We hebben een 6-cijferige code gestuurd naar",
     "enterCodeFor": "Voer de bovenstaande code in voor"
   },
+  "payment": {
+    "payNow": "Nu betalen",
+    "redirecting": "Doorverwijzen…",
+    "startFailed": "Kon de betaling niet starten. Probeer het opnieuw.",
+    "checking": "Betaling controleren…",
+    "success": "Betaling geslaagd",
+    "pending": "Betaling wordt nog verwerkt",
+    "pendingDetails": "Je bank bevestigt binnen enkele seconden. Vernieuw de pagina of kom zo terug.",
+    "failed": "Betaling mislukt",
+    "canceled": "Betaling geannuleerd",
+    "expired": "Betaling verlopen",
+    "unknown": "Geen betaling gevonden",
+    "error": "Er ging iets mis",
+    "backHome": "Terug naar dashboard"
+  },
   "musicianDashboard": {
     "hello": "Hallo, {{name}}!",
     "noSeasons": "Nog geen seizoenen beschikbaar.",

@@ -18,6 +18,7 @@ A mobile-first web app for managing an orchestra: rehearsal attendance, season &
 
 ### For Musicians
 - **Attendance**: Mark availability (Attending / Not Attending / Maybe) per rehearsal and concert
+- **Online payment**: Pay the season fee directly from the app via Mollie (Bancontact + Wero)
 - **Season info**: View season details and concerts (maestro, venues with Google Maps links, dates)
 - **News feed**: Read orchestra news articles with cover images, mark as read
 - **Inbox**: Receive messages from admins and maestros
@@ -142,6 +143,7 @@ Located in `backend/migrations/`. Tracked via a `schema_migrations` table for id
 | 011 | CMS pages |
 | 012 | Maestro & section leader roles (role enum + season maestro FK) |
 | 013 | Concert attendance (links concerts to rehearsal entries for attendance tracking) |
+| 014 | Mollie payments (Bancontact / Wero) for season fees |
 
 ## Project Structure
 

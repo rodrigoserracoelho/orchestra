@@ -61,6 +61,21 @@
     "codeSentTo": "We sent a 6-digit code to",
     "enterCodeFor": "Enter the code above for"
   },
+  "payment": {
+    "payNow": "Pay now",
+    "redirecting": "Redirecting…",
+    "startFailed": "Could not start the payment. Please try again.",
+    "checking": "Checking your payment…",
+    "success": "Payment successful",
+    "pending": "Payment is still being processed",
+    "pendingDetails": "Your bank confirms in a few seconds. Refresh this page or check back shortly.",
+    "failed": "Payment failed",
+    "canceled": "Payment canceled",
+    "expired": "Payment expired",
+    "unknown": "No payment found",
+    "error": "Something went wrong",
+    "backHome": "Back to dashboard"
+  },
   "musicianDashboard": {
     "hello": "Hello, {{name}}!",
     "noSeasons": "No seasons available yet.",

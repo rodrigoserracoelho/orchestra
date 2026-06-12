@@ -6,10 +6,17 @@ const attendanceController = require('../controllers/attendanceController');
 const User = require('../models/User');
 const Message = require('../models/Message');
 const News = require('../models/News');
+const paymentController = require('../controllers/paymentController');
+const env = require('../config/env');
 const { pool } = require('../config/database');
 
 // All musician routes require authentication
 router.use(authenticate);
+
+// Client-visible feature flags
+router.get('/config', (req, res) => {
+  res.json({ success: true, data: { paymentsEnabled: !!env.paymentsEnabled } });
+});
 
 // Keepalive (online status)
 router.post('/keepalive', async (req, res) => {
@@ -137,6 +144,12 @@ router.post('/news/:newsId/read', async (req, res) => {
     res.status(500).json({ success: false, error: 'server_error', message: 'Failed to mark as read' });
   }
 });
+
+// Initiate a Mollie Bancontact payment for a season fee
+router.post('/payments/:seasonId/initiate', paymentController.initiate);
+
+// Live status of the latest payment attempt for a season
+router.get('/payments/:seasonId/status', paymentController.status);
 
 // Payment status (for the logged-in musician)
 router.get('/payments', async (req, res) => {
