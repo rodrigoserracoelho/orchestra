@@ -124,6 +124,37 @@ NGINX (80/443) → App container (3001) → MySQL (3306)
 
 The included `nginx.conf.example` is configured for Let's Encrypt SSL. On first deploy, obtain certificates using certbot with the webroot method.
 
+## Online Payments (optional)
+
+Musicians can pay their season fee from the app via [Mollie](https://www.mollie.com), with **Bancontact** and **Wero** offered side-by-side on the checkout page (the user picks). The feature is **off by default**.
+
+### Enabling
+
+1. Create a Mollie account and grab your API key from the [Mollie dashboard](https://my.mollie.com/dashboard/developers/api-keys) — use `test_…` for development and `live_…` in production.
+2. Set the following env vars in `.env`:
+
+   ```
+   PAYMENTS_ENABLED=true
+   MOLLIE_API_KEY=test_...
+   BACKEND_URL=https://yourdomain.com   # must be publicly reachable
+   ```
+
+3. Restart the backend (`docker compose restart app`).
+
+When `PAYMENTS_ENABLED=false` (or missing), the "Pay now" button is hidden and the payment API rejects requests with 403.
+
+### How it works
+
+- User clicks **Pay now** next to an unpaid season fee → backend calls Mollie → user is redirected to Mollie's checkout
+- User picks Bancontact or Wero → finishes in their bank's mobile app → redirected back to `/payment/return`
+- Mollie also calls our webhook (`/api/payments/webhook`) server-to-server — this is what actually marks the user as paid in `season_payments`
+- Admins can still mark people paid manually; the two flows coexist
+
+### Notes
+
+- The webhook URL (`BACKEND_URL`) must be reachable from the public internet. For local development, use ngrok or test only in staging/production.
+- `mollie_payments` (migration 014) tracks the lifecycle (Mollie ID, status, raw webhook payload). `season_payments.paid` stays the source of truth used everywhere else in the app.
+
 ## Database
 
 ### Migrations
