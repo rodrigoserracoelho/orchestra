@@ -37,7 +37,16 @@
     "switchToMusician": "Passer en vue Musicien",
     "switchToAdmin": "Passer en vue Admin",
     "switchToRole": "Retour à mon rôle",
-    "pages": "Pages"
+    "pages": "Pages",
+    "directory": "Annuaire"
+  },
+  "directory": {
+    "title": "Annuaire des musiciens",
+    "subtitle": "{{count}} membres",
+    "empty": "Aucun musicien à afficher pour l'instant.",
+    "noBio": "Pas encore de bio.",
+    "unspecified": "Non renseigné",
+    "loadFailed": "Échec du chargement de l'annuaire."
   },
   "login": {
     "signInEmail": "Connectez-vous avec votre email",
@@ -62,19 +71,17 @@
     "enterCodeFor": "Entrez le code ci-dessus pour"
   },
   "payment": {
-    "payNow": "Payer maintenant",
-    "redirecting": "Redirection…",
-    "startFailed": "Impossible de démarrer le paiement. Veuillez réessayer.",
-    "checking": "Vérification du paiement…",
-    "success": "Paiement réussi",
-    "pending": "Paiement en cours de traitement",
-    "pendingDetails": "Votre banque confirme dans quelques secondes. Actualisez la page ou revenez bientôt.",
-    "failed": "Paiement échoué",
-    "canceled": "Paiement annulé",
-    "expired": "Paiement expiré",
-    "unknown": "Aucun paiement trouvé",
-    "error": "Une erreur est survenue",
-    "backHome": "Retour au tableau de bord"
+    "payByTransfer": "Payer par virement",
+    "preparing": "Préparation…",
+    "startFailed": "Impossible de préparer le virement. Veuillez réessayer.",
+    "transferTitle": "Payer par virement SEPA",
+    "transferIntro": "Scannez le code QR avec votre application bancaire, ou recopiez les informations ci-dessous dans un virement classique.",
+    "beneficiary": "Bénéficiaire",
+    "iban": "IBAN",
+    "amount": "Montant",
+    "communication": "Communication",
+    "transferNote": "Utilisez la communication exactement telle qu'affichée pour que votre paiement soit reconnu automatiquement. Le statut sera mis à jour dès réception du virement (généralement le jour ouvrable suivant).",
+    "done": "Terminé"
   },
   "musicianDashboard": {
     "hello": "Bonjour, {{name}} !",
@@ -317,7 +324,13 @@
     "none": "Aucun",
     "updated": "Profil mis \u00e0 jour !",
     "nameRequired": "Le nom est obligatoire",
-    "loadFailed": "\u00c9chec du chargement du profil"
+    "loadFailed": "\u00c9chec du chargement du profil",
+    "picture": "Photo de profil",
+    "pictureChange": "Choisir une photo",
+    "pictureRemove": "Supprimer la photo",
+    "bio": "\u00c0 propos de moi",
+    "bioPlaceholder": "Quelques mots sur vous, ce que vous aimez dans la musique, ce que vous voulez partager avec les autres musiciens.",
+    "showInDirectory": "M'afficher dans l'annuaire des musiciens"
   },
   "noSeasonsRehearsals": "Aucune r\u00e9p\u00e9tition pr\u00e9vue pour cette saison.",
   "adminPages": {

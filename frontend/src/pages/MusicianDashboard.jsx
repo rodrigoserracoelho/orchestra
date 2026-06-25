@@ -17,6 +17,8 @@ export default function MusicianDashboard() {
   const [showSeasonDetail, setShowSeasonDetail] = useState(false);
   const [payInProgress, setPayInProgress] = useState(false);
   const [paymentsEnabled, setPaymentsEnabled] = useState(false);
+  const [transferInfo, setTransferInfo] = useState(null);
+  const [transferError, setTransferError] = useState('');
 
   const STATUS_CONFIG = {
     attending: { label: t('attendance.attending'), bg: 'bg-green-50 dark:bg-green-900/30', border: 'border-green-200 dark:border-green-800', text: 'text-green-700 dark:text-green-400', btnBg: 'bg-green-500 hover:bg-green-600' },
@@ -92,14 +94,25 @@ export default function MusicianDashboard() {
 
   const handlePayNow = async (seasonId) => {
     setPayInProgress(true);
+    setTransferError('');
     try {
-      const res = await apiClient.post(`/musician/payments/${seasonId}/initiate`);
-      window.location.href = res.data.data.checkoutUrl;
+      const res = await apiClient.get(`/musician/payments/${seasonId}/transfer`);
+      setTransferInfo(res.data.data);
     } catch (error) {
-      console.error('Pay now error:', error);
-      alert(t('payment.startFailed'));
+      console.error('Issue transfer error:', error);
+      setTransferError(t('payment.startFailed'));
+    } finally {
       setPayInProgress(false);
     }
+  };
+
+  const closeTransferModal = () => {
+    setTransferInfo(null);
+    setTransferError('');
+  };
+
+  const copyToClipboard = (text) => {
+    if (navigator.clipboard) navigator.clipboard.writeText(text);
   };
 
   const locale = currentLang.locale;
@@ -174,7 +187,7 @@ export default function MusicianDashboard() {
                     disabled={payInProgress}
                     className="px-3 py-1.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold disabled:opacity-60"
                   >
-                    {payInProgress ? t('payment.redirecting') : t('payment.payNow')}
+                    {payInProgress ? t('payment.preparing') : t('payment.payByTransfer')}
                   </button>
                 )}
               </div>
@@ -325,6 +338,62 @@ export default function MusicianDashboard() {
             );
           })()}
         </>
+      )}
+
+      {/* Pay-by-transfer modal: shows QR code + bank details + structured communication */}
+      {transferInfo && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto" onClick={closeTransferModal}>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-5" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-1">{t('payment.transferTitle')}</h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">{t('payment.transferIntro')}</p>
+
+            <div className="flex justify-center mb-4 bg-white rounded-xl p-3" dangerouslySetInnerHTML={{ __html: transferInfo.qrSvg }} />
+
+            <dl className="text-sm space-y-2">
+              <div className="flex justify-between gap-3">
+                <dt className="text-gray-500 dark:text-gray-400">{t('payment.beneficiary')}</dt>
+                <dd className="font-medium text-right text-gray-800 dark:text-gray-100">{transferInfo.beneficiaryName}</dd>
+              </div>
+              <div className="flex justify-between gap-3 items-center">
+                <dt className="text-gray-500 dark:text-gray-400">{t('payment.iban')}</dt>
+                <dd className="flex items-center gap-2">
+                  <span className="font-mono text-gray-800 dark:text-gray-100">{transferInfo.iban}</span>
+                  <button onClick={() => copyToClipboard(transferInfo.iban)} className="text-xs px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600">⧉</button>
+                </dd>
+              </div>
+              {transferInfo.bic && (
+                <div className="flex justify-between gap-3">
+                  <dt className="text-gray-500 dark:text-gray-400">BIC</dt>
+                  <dd className="font-mono text-gray-800 dark:text-gray-100">{transferInfo.bic}</dd>
+                </div>
+              )}
+              <div className="flex justify-between gap-3">
+                <dt className="text-gray-500 dark:text-gray-400">{t('payment.amount')}</dt>
+                <dd className="font-semibold text-gray-800 dark:text-gray-100">€ {transferInfo.amount}</dd>
+              </div>
+              <div className="flex justify-between gap-3 items-center">
+                <dt className="text-gray-500 dark:text-gray-400">{t('payment.communication')}</dt>
+                <dd className="flex items-center gap-2">
+                  <span className="font-mono text-primary-700 dark:text-primary-300 font-semibold">{transferInfo.communicationFormatted}</span>
+                  <button onClick={() => copyToClipboard(transferInfo.communicationFormatted)} className="text-xs px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600">⧉</button>
+                </dd>
+              </div>
+            </dl>
+
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-4">{t('payment.transferNote')}</p>
+
+            <button onClick={closeTransferModal}
+              className="w-full mt-4 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold">
+              {t('payment.done')}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {transferError && !transferInfo && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-red-100 text-red-700 px-4 py-2 rounded-lg text-sm shadow-lg z-50">
+          {transferError}
+        </div>
       )}
     </div>
   );

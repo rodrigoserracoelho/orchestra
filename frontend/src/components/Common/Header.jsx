@@ -40,6 +40,7 @@ export default function Header() {
     { to: '/', label: t('nav.dashboard') },
     { to: '/admin/seasons', label: t('nav.seasons') },
     { to: '/admin/musicians', label: t('nav.musicians') },
+    { to: '/musicians', label: t('nav.directory') },
     { to: '/admin/messages', label: t('nav.messages') },
     { to: '/admin/news', label: t('nav.news') },
     { to: '/admin/pages', label: t('nav.pages') },
@@ -49,18 +50,21 @@ export default function Header() {
 
   const musicianLinks = [
     { to: '/', label: t('nav.myRehearsals') },
+    { to: '/musicians', label: t('nav.directory') },
     { to: '/inbox', label: inboxLabel, badge: unreadCount },
     { to: '/news', label: t('nav.news') },
   ];
 
   const maestroLinks = [
     { to: '/', label: t('nav.dashboard') },
+    { to: '/musicians', label: t('nav.directory') },
     { to: '/inbox', label: inboxLabel, badge: unreadCount },
     { to: '/news', label: t('nav.news') },
   ];
 
   const sectionLeaderLinks = [
     { to: '/', label: t('nav.dashboard') },
+    { to: '/musicians', label: t('nav.directory') },
     { to: '/inbox', label: inboxLabel, badge: unreadCount },
     { to: '/news', label: t('nav.news') },
   ];

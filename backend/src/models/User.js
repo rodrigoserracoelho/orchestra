@@ -3,12 +3,25 @@ const { pool } = require('../config/database');
 const User = {
   async findById(id) {
     const [rows] = await pool.execute(
-      'SELECT id, email, name, instrument, part, birthdate, phone, role, active, created_at FROM users WHERE id = ?',
+      'SELECT id, email, name, instrument, part, birthdate, phone, profile_picture, bio, show_in_directory, role, active, created_at FROM users WHERE id = ?',
       [id]
     );
     const user = rows[0] || null;
-    if (user) user.active = !!user.active;
+    if (user) {
+      user.active = !!user.active;
+      user.show_in_directory = !!user.show_in_directory;
+    }
     return user;
+  },
+
+  async findDirectory() {
+    const [rows] = await pool.execute(
+      `SELECT id, name, instrument, part, bio, profile_picture
+       FROM users
+       WHERE active = TRUE AND show_in_directory = TRUE
+       ORDER BY name`
+    );
+    return rows;
   },
 
   async findByEmail(email) {
@@ -38,13 +51,17 @@ const User = {
   },
 
   async update(id, fields) {
-    const allowed = ['name', 'instrument', 'part', 'birthdate', 'phone', 'email', 'role', 'active'];
+    const allowed = ['name', 'instrument', 'part', 'birthdate', 'phone', 'email', 'role', 'active', 'profile_picture', 'bio', 'show_in_directory'];
     const updates = [];
     const values = [];
     for (const key of allowed) {
       if (fields[key] !== undefined) {
         updates.push(`${key} = ?`);
-        values.push(key === 'active' ? !!fields[key] : (fields[key] || null));
+        if (key === 'active' || key === 'show_in_directory') {
+          values.push(!!fields[key]);
+        } else {
+          values.push(fields[key] || null);
+        }
       }
     }
     if (updates.length === 0) return null;

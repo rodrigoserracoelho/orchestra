@@ -29,8 +29,10 @@ module.exports = {
   },
   frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
   backendUrl: process.env.BACKEND_URL || 'http://localhost:3001',
-  mollie: {
-    apiKey: process.env.MOLLIE_API_KEY,
-  },
   paymentsEnabled: process.env.PAYMENTS_ENABLED === 'true',
+  org: {
+    beneficiaryName: process.env.ORG_BENEFICIARY_NAME,
+    iban: process.env.ORG_IBAN,
+    bic: process.env.ORG_BIC,
+  },
 };

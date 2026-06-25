@@ -18,7 +18,8 @@ A mobile-first web app for managing an orchestra: rehearsal attendance, season &
 
 ### For Musicians
 - **Attendance**: Mark availability (Attending / Not Attending / Maybe) per rehearsal and concert
-- **Online payment**: Pay the season fee directly from the app via Mollie (Bancontact + Wero)
+- **Online payment**: Pay the season fee with a SEPA bank transfer — the app generates an EPC QR code and structured communication for one-tap payment from any Belgian bank app
+- **Profile & directory**: Add a profile photo and short bio; browse fellow members in a directory grouped by instrument (opt-out toggle in your profile)
 - **Season info**: View season details and concerts (maestro, venues with Google Maps links, dates)
 - **News feed**: Read orchestra news articles with cover images, mark as read
 - **Inbox**: Receive messages from admins and maestros
@@ -126,34 +127,43 @@ The included `nginx.conf.example` is configured for Let's Encrypt SSL. On first 
 
 ## Online Payments (optional)
 
-Musicians can pay their season fee from the app via [Mollie](https://www.mollie.com), with **Bancontact** and **Wero** offered side-by-side on the checkout page (the user picks). The feature is **off by default**.
+Musicians can pay their season fee from the app using a **SEPA bank transfer + EPC QR code**. Free for the orchestra (no PSP fees), one-tap experience for the musician (any Belgian bank app prefills the form when the QR is scanned). The feature is **off by default**.
 
 ### Enabling
 
-1. Create a Mollie account and grab your API key from the [Mollie dashboard](https://my.mollie.com/dashboard/developers/api-keys) — use `test_…` for development and `live_…` in production.
-2. Set the following env vars in `.env`:
+1. Set the following env vars in `.env`:
 
    ```
    PAYMENTS_ENABLED=true
-   MOLLIE_API_KEY=test_...
-   BACKEND_URL=https://yourdomain.com   # must be publicly reachable
+   ORG_BENEFICIARY_NAME=Your Orchestra ASBL
+   ORG_IBAN=BE68539007547034
+   ORG_BIC=                 # optional, only needed for legacy banks
    ```
 
-3. Restart the backend (`docker compose restart app`).
+2. Restart the backend (`docker compose restart app`).
 
-When `PAYMENTS_ENABLED=false` (or missing), the "Pay now" button is hidden and the payment API rejects requests with 403.
+When `PAYMENTS_ENABLED=false` (or missing), the "Pay by transfer" button is hidden and the payment API rejects requests with 403.
 
 ### How it works
 
-- User clicks **Pay now** next to an unpaid season fee → backend calls Mollie → user is redirected to Mollie's checkout
-- User picks Bancontact or Wero → finishes in their bank's mobile app → redirected back to `/payment/return`
-- Mollie also calls our webhook (`/api/payments/webhook`) server-to-server — this is what actually marks the user as paid in `season_payments`
-- Admins can still mark people paid manually; the two flows coexist
+- User clicks **Pay by transfer** next to an unpaid season fee → backend creates a `sepa_payments` row, generates a Belgian structured communication (`+++DDD/DDDD/DDDDD+++`) and an EPC QR code
+- Frontend shows a modal with the QR code, IBAN, amount, and reference
+- User scans with their bank app → confirms → bank executes a regular SEPA transfer
+- Funds arrive next business day. Admin marks the user paid via the existing admin UI **or** an automated CODA processor (see below)
+- `season_payments.paid` remains the single source of truth across the rest of the app
 
-### Notes
+### Automatic reconciliation via CODA (optional, free)
 
-- The webhook URL (`BACKEND_URL`) must be reachable from the public internet. For local development, use ngrok or test only in staging/production.
-- `mollie_payments` (migration 014) tracks the lifecycle (Mollie ID, status, raw webhook payload). `season_payments.paid` stays the source of truth used everywhere else in the app.
+Belgian banks deliver daily **CODA files** (Coded Daily Statement) containing every transaction. A separate cron job can parse those and auto-mark payments based on the structured communication:
+
+1. Ask your bank to email/SFTP a daily CODA file (free or ~€1-5/month depending on bank).
+2. Build a small worker that:
+   - Polls IMAP for new CODA emails (or watches an SFTP folder)
+   - Parses the file with any open-source CODA parser
+   - For each credit transaction, looks up `sepa_payments.structured_communication`
+   - On match → mark `sepa_payments` as paid and upsert `season_payments.paid = TRUE`
+
+This is not bundled yet — track it as an open task if you need full automation. Manual reconciliation still works fine in the meantime.
 
 ## Database
 
@@ -174,7 +184,8 @@ Located in `backend/migrations/`. Tracked via a `schema_migrations` table for id
 | 011 | CMS pages |
 | 012 | Maestro & section leader roles (role enum + season maestro FK) |
 | 013 | Concert attendance (links concerts to rehearsal entries for attendance tracking) |
-| 014 | Mollie payments (Bancontact / Wero) for season fees |
+| 014 | SEPA payment intents for season fees (with structured communication for CODA matching) |
+| 015 | Profile picture (base64), bio, and directory opt-in flag on users |
 
 ## Project Structure
 

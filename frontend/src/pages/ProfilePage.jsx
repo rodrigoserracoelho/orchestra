@@ -10,7 +10,7 @@ const PARTS = ['I', 'II', 'Solo'];
 export default function ProfilePage() {
   const { user, refreshUser } = useAuth();
   const { t } = useLanguage();
-  const [form, setForm] = useState({ name: '', instrument: '', part: '', birthdate: '', phone: '' });
+  const [form, setForm] = useState({ name: '', instrument: '', part: '', birthdate: '', phone: '', bio: '', profile_picture: '', show_in_directory: true });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -26,6 +26,9 @@ export default function ProfilePage() {
           part: p.part || '',
           birthdate: p.birthdate ? p.birthdate.split('T')[0] : '',
           phone: p.phone || '',
+          bio: p.bio || '',
+          profile_picture: p.profile_picture || '',
+          show_in_directory: p.show_in_directory !== false,
         });
       })
       .catch(() => setError(t('profile.loadFailed')))
@@ -51,6 +54,29 @@ export default function ProfilePage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  // Downscale to max 400px and re-encode as JPEG to keep base64 small.
+  const handlePictureChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const max = 400;
+        const scale = Math.min(1, max / Math.max(img.width, img.height));
+        const w = Math.round(img.width * scale);
+        const h = Math.round(img.height * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        setForm((f) => ({ ...f, profile_picture: canvas.toDataURL('image/jpeg', 0.85) }));
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
   };
 
   const inputClass = "w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 focus:border-primary-400 outline-none text-sm dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500";
@@ -116,6 +142,45 @@ export default function ProfilePage() {
               className={inputClass} placeholder="+32 ..." />
           </div>
         </div>
+
+        <div>
+          <label className={labelClass}>{t('profile.picture')}</label>
+          <div className="flex items-center gap-4">
+            {form.profile_picture ? (
+              <img src={form.profile_picture} alt="" className="w-20 h-20 rounded-full object-cover border border-gray-200 dark:border-gray-600" />
+            ) : (
+              <div className="w-20 h-20 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-2xl text-gray-400">👤</div>
+            )}
+            <div className="flex flex-col gap-2">
+              <label className="px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-sm cursor-pointer">
+                {t('profile.pictureChange')}
+                <input type="file" accept="image/*" onChange={handlePictureChange} className="hidden" />
+              </label>
+              {form.profile_picture && (
+                <button type="button" onClick={() => setForm({ ...form, profile_picture: '' })}
+                  className="text-xs text-red-600 dark:text-red-400 hover:underline text-left">
+                  {t('profile.pictureRemove')}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label className={labelClass}>{t('profile.bio')}</label>
+          <textarea value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })}
+            maxLength={500} rows={4}
+            className={`${inputClass} resize-y`}
+            placeholder={t('profile.bioPlaceholder')} />
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{form.bio.length}/500</p>
+        </div>
+
+        <label className="flex items-center gap-3 cursor-pointer select-none">
+          <input type="checkbox" checked={form.show_in_directory}
+            onChange={(e) => setForm({ ...form, show_in_directory: e.target.checked })}
+            className="w-4 h-4 accent-primary-600" />
+          <span className="text-sm text-gray-700 dark:text-gray-200">{t('profile.showInDirectory')}</span>
+        </label>
 
         <button type="submit" disabled={saving}
           className="w-full py-3 bg-primary-600 text-white rounded-xl font-medium hover:bg-primary-700 disabled:opacity-50">

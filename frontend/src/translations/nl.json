@@ -37,7 +37,16 @@
     "switchToMusician": "Naar muzikantweergave",
     "switchToAdmin": "Naar adminweergave",
     "switchToRole": "Terug naar mijn rol",
-    "pages": "Pagina's"
+    "pages": "Pagina's",
+    "directory": "Ledenlijst"
+  },
+  "directory": {
+    "title": "Ledenlijst",
+    "subtitle": "{{count}} leden",
+    "empty": "Nog geen muzikanten om te tonen.",
+    "noBio": "Nog geen bio.",
+    "unspecified": "Niet opgegeven",
+    "loadFailed": "Kon de ledenlijst niet laden."
   },
   "login": {
     "signInEmail": "Meld u aan met uw email",
@@ -62,19 +71,17 @@
     "enterCodeFor": "Voer de bovenstaande code in voor"
   },
   "payment": {
-    "payNow": "Nu betalen",
-    "redirecting": "Doorverwijzen…",
-    "startFailed": "Kon de betaling niet starten. Probeer het opnieuw.",
-    "checking": "Betaling controleren…",
-    "success": "Betaling geslaagd",
-    "pending": "Betaling wordt nog verwerkt",
-    "pendingDetails": "Je bank bevestigt binnen enkele seconden. Vernieuw de pagina of kom zo terug.",
-    "failed": "Betaling mislukt",
-    "canceled": "Betaling geannuleerd",
-    "expired": "Betaling verlopen",
-    "unknown": "Geen betaling gevonden",
-    "error": "Er ging iets mis",
-    "backHome": "Terug naar dashboard"
+    "payByTransfer": "Betalen via overschrijving",
+    "preparing": "Voorbereiden…",
+    "startFailed": "Kon de overschrijving niet voorbereiden. Probeer het opnieuw.",
+    "transferTitle": "Betalen via SEPA-overschrijving",
+    "transferIntro": "Scan de QR-code met je bank-app, of neem de gegevens hieronder over in een gewone overschrijving.",
+    "beneficiary": "Begunstigde",
+    "iban": "IBAN",
+    "amount": "Bedrag",
+    "communication": "Mededeling",
+    "transferNote": "Gebruik de mededeling exact zoals getoond, zodat je betaling automatisch herkend kan worden. Je status wordt bijgewerkt zodra de overschrijving binnenkomt (meestal de volgende werkdag).",
+    "done": "Klaar"
   },
   "musicianDashboard": {
     "hello": "Hallo, {{name}}!",
@@ -317,7 +324,13 @@
     "none": "Geen",
     "updated": "Profiel bijgewerkt!",
     "nameRequired": "Naam is verplicht",
-    "loadFailed": "Laden van het profiel mislukt"
+    "loadFailed": "Laden van het profiel mislukt",
+    "picture": "Profielfoto",
+    "pictureChange": "Foto kiezen",
+    "pictureRemove": "Foto verwijderen",
+    "bio": "Over mij",
+    "bioPlaceholder": "Een paar woorden over jezelf, wat je leuk vindt aan muziek, wat je met andere muzikanten wilt delen.",
+    "showInDirectory": "Toon mij in de ledenlijst"
   },
   "noSeasonsRehearsals": "Nog geen repetities gepland voor dit seizoen.",
   "adminPages": {

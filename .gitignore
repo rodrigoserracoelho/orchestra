@@ -22,6 +22,9 @@ dist/
 # Nginx (use nginx.conf.example as template)
 nginx.conf
 
+# Docker compose local-dev overrides
+docker-compose.override.yml
+
 # Archives
 *.tar.gz
 

@@ -37,7 +37,16 @@
     "switchToMusician": "Switch to Musician View",
     "switchToAdmin": "Switch to Admin View",
     "switchToRole": "Switch to My Role",
-    "pages": "Pages"
+    "pages": "Pages",
+    "directory": "Directory"
+  },
+  "directory": {
+    "title": "Musicians directory",
+    "subtitle": "{{count}} members",
+    "empty": "No musicians to show yet.",
+    "noBio": "No bio yet.",
+    "unspecified": "Unspecified",
+    "loadFailed": "Failed to load the directory."
   },
   "login": {
     "signInEmail": "Sign in with your email",
@@ -62,19 +71,17 @@
     "enterCodeFor": "Enter the code above for"
   },
   "payment": {
-    "payNow": "Pay now",
-    "redirecting": "Redirecting…",
-    "startFailed": "Could not start the payment. Please try again.",
-    "checking": "Checking your payment…",
-    "success": "Payment successful",
-    "pending": "Payment is still being processed",
-    "pendingDetails": "Your bank confirms in a few seconds. Refresh this page or check back shortly.",
-    "failed": "Payment failed",
-    "canceled": "Payment canceled",
-    "expired": "Payment expired",
-    "unknown": "No payment found",
-    "error": "Something went wrong",
-    "backHome": "Back to dashboard"
+    "payByTransfer": "Pay by transfer",
+    "preparing": "Preparing…",
+    "startFailed": "Could not prepare the transfer. Please try again.",
+    "transferTitle": "Pay by SEPA transfer",
+    "transferIntro": "Scan the QR code with your bank app, or copy the details below into a standard transfer.",
+    "beneficiary": "Beneficiary",
+    "iban": "IBAN",
+    "amount": "Amount",
+    "communication": "Communication",
+    "transferNote": "Use the communication exactly as shown so your payment can be matched automatically. Your status will update once the transfer arrives (usually next business day).",
+    "done": "Done"
   },
   "musicianDashboard": {
     "hello": "Hello, {{name}}!",
@@ -317,7 +324,13 @@
     "none": "None",
     "updated": "Profile updated!",
     "nameRequired": "Name is required",
-    "loadFailed": "Failed to load profile"
+    "loadFailed": "Failed to load profile",
+    "picture": "Profile picture",
+    "pictureChange": "Choose a photo",
+    "pictureRemove": "Remove photo",
+    "bio": "About me",
+    "bioPlaceholder": "A few words about yourself, what you love about music, anything you'd like fellow musicians to know.",
+    "showInDirectory": "Show me in the musicians directory"
   },
   "noSeasonsRehearsals": "No rehearsals scheduled for this season yet.",
   "adminPages": {

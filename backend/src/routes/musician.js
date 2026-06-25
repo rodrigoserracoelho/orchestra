@@ -46,7 +46,7 @@ router.get('/profile', async (req, res) => {
 
 router.patch('/profile', async (req, res) => {
   try {
-    const allowed = ['name', 'instrument', 'part', 'birthdate', 'phone'];
+    const allowed = ['name', 'instrument', 'part', 'birthdate', 'phone', 'profile_picture', 'bio', 'show_in_directory'];
     const fields = {};
     for (const key of allowed) {
       if (req.body[key] !== undefined) fields[key] = req.body[key];
@@ -58,6 +58,17 @@ router.patch('/profile', async (req, res) => {
     res.json({ success: true, data: updated, message: 'Profile updated' });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Failed to update profile' });
+  }
+});
+
+// Musician directory (visible to any authenticated member)
+router.get('/directory', async (req, res) => {
+  try {
+    const musicians = await User.findDirectory();
+    res.json({ success: true, data: musicians });
+  } catch (error) {
+    console.error('Directory error:', error);
+    res.status(500).json({ success: false, message: 'Failed to load directory' });
   }
 });
 
@@ -145,11 +156,8 @@ router.post('/news/:newsId/read', async (req, res) => {
   }
 });
 
-// Initiate a Mollie Bancontact payment for a season fee
-router.post('/payments/:seasonId/initiate', paymentController.initiate);
-
-// Live status of the latest payment attempt for a season
-router.get('/payments/:seasonId/status', paymentController.status);
+// Issue a SEPA transfer payment intent (IBAN, structured comm, EPC QR code)
+router.get('/payments/:seasonId/transfer', paymentController.issue);
 
 // Payment status (for the logged-in musician)
 router.get('/payments', async (req, res) => {
