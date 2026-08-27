@@ -10,6 +10,9 @@ import AdminMusicians from './pages/AdminMusicians';
 import AdminMessages from './pages/AdminMessages';
 import AdminNews from './pages/AdminNews';
 import AdminPages from './pages/AdminPages';
+import AdminLocations from './pages/AdminLocations';
+import AdminPolls from './pages/AdminPolls';
+import MusicianPolls from './pages/MusicianPolls';
 import MusicianInbox from './pages/MusicianInbox';
 import MusicianNews from './pages/MusicianNews';
 import MaestroDashboard from './pages/MaestroDashboard';
@@ -77,6 +80,8 @@ export default function App() {
                 <Route path="/admin/seasons" element={<ProtectedRoute roles={['admin']}><AdminSeasons /></ProtectedRoute>} />
                 <Route path="/admin/seasons/:seasonId/rehearsals" element={<ProtectedRoute roles={['admin']}><AdminRehearsals /></ProtectedRoute>} />
                 <Route path="/admin/rehearsals/:rehearsalId/attendance" element={<ProtectedRoute roles={['admin']}><AdminAttendance /></ProtectedRoute>} />
+                <Route path="/admin/seasons/:seasonId/polls" element={<ProtectedRoute roles={['admin']}><AdminPolls /></ProtectedRoute>} />
+                <Route path="/admin/locations" element={<ProtectedRoute roles={['admin']}><AdminLocations /></ProtectedRoute>} />
                 <Route path="/admin/musicians" element={<ProtectedRoute roles={['admin']}><AdminMusicians /></ProtectedRoute>} />
                 <Route path="/admin/messages" element={<ProtectedRoute roles={['admin']}><AdminMessages /></ProtectedRoute>} />
                 <Route path="/admin/news" element={<ProtectedRoute roles={['admin']}><AdminNews /></ProtectedRoute>} />
@@ -86,6 +91,7 @@ export default function App() {
                 <Route path="/inbox" element={<ProtectedRoute><MusicianInbox /></ProtectedRoute>} />
                 <Route path="/news" element={<ProtectedRoute><MusicianNews /></ProtectedRoute>} />
                 <Route path="/musicians" element={<ProtectedRoute><MusicianDirectory /></ProtectedRoute>} />
+                <Route path="/polls" element={<ProtectedRoute><MusicianPolls /></ProtectedRoute>} />
 
                 {/* Profile (any authenticated user) */}
                 <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />

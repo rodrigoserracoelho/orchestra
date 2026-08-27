@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import apiClient from '../services/apiClient';
 import RichTextEditor from '../components/Common/RichTextEditor';
+import BackLink from '../components/Common/BackLink';
 
 const emptyForm = { slug: '', title: '', body: '', active: true, show_in_nav: true, sort_order: 0 };
 
@@ -140,6 +141,7 @@ export default function AdminPages() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
+      <BackLink />
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100">{t('adminPages.title')}</h1>
         <button onClick={openCreate}

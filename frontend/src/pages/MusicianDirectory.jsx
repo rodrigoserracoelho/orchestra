@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import apiClient from '../services/apiClient';
+import BackLink from '../components/Common/BackLink';
 
 export default function MusicianDirectory() {
   const { t } = useLanguage();
@@ -40,6 +41,7 @@ export default function MusicianDirectory() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
+      <BackLink />
       <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">{t('directory.title')}</h1>
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{t('directory.subtitle', { count: musicians.length })}</p>
 

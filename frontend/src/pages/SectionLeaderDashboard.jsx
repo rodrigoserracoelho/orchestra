@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import apiClient from '../services/apiClient';
+import FeatureGrid from '../components/Common/FeatureGrid';
 
 export default function SectionLeaderDashboard() {
   const { user } = useAuth();
@@ -74,6 +75,8 @@ export default function SectionLeaderDashboard() {
         <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100">{t('sectionLeaderDashboard.hello', { name: user?.name })}</h1>
         <p className="text-sm text-gray-500 dark:text-gray-400">{t('common.section_leader')}</p>
       </div>
+
+      <FeatureGrid />
 
       {/* Season selector */}
       {seasons.length > 1 && (

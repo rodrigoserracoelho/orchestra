@@ -2,10 +2,8 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import apiClient from '../services/apiClient';
-
-const INSTRUMENTS = ['Violin', 'Viola', 'Cello', 'Double Bass', 'Flute', 'Oboe', 'English Horn', 'Clarinet', 'Bassoon',
-  'French Horn', 'Trumpet', 'Trombone', 'Tuba', 'Timpani', 'Percussion', 'Harp', 'Piano', 'Other'];
-const PARTS = ['I', 'II', 'Solo'];
+import { INSTRUMENTS, PARTS } from '../constants/orchestra';
+import BackLink from '../components/Common/BackLink';
 
 export default function ProfilePage() {
   const { user, refreshUser } = useAuth();
@@ -93,6 +91,7 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-md mx-auto px-4 py-6">
+      <BackLink />
       <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-6">{t('profile.title')}</h1>
 
       <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 space-y-4">

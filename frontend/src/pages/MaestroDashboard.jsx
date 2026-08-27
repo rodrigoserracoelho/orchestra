@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import apiClient from '../services/apiClient';
+import FeatureGrid from '../components/Common/FeatureGrid';
 
 const STATUS_STYLES = {
   attending: { dot: 'bg-green-500', bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-700 dark:text-green-400' },
@@ -126,6 +127,8 @@ export default function MaestroDashboard() {
           {t('maestroDashboard.newMessage')}
         </button>
       </div>
+
+      <FeatureGrid />
 
       {msgSuccess && (
         <div className="mb-4 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-sm p-3 rounded-lg">{msgSuccess}</div>

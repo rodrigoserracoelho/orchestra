@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import apiClient from '../services/apiClient';
+import BackLink from '../components/Common/BackLink';
 
 export default function MusicianNews() {
   const { t, currentLang } = useLanguage();
@@ -38,6 +39,7 @@ export default function MusicianNews() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
+      <BackLink />
       <div className="mb-6">
         <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100">{t('news.title')}</h1>
         {unreadCount > 0 && (

@@ -2,16 +2,18 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import apiClient from '../services/apiClient';
+import BackLink from '../components/Common/BackLink';
 
 export default function AdminRehearsals() {
   const { seasonId } = useParams();
   const { t, tp, currentLang } = useLanguage();
   const [season, setSeason] = useState(null);
   const [rehearsals, setRehearsals] = useState([]);
+  const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [form, setForm] = useState({ title: '', location: '', rehearsal_date: '', duration_minutes: 120, notes: '' });
+  const [form, setForm] = useState({ title: '', rehearsal_type: 'tutti', location_id: '', rehearsal_date: '', duration_minutes: 120, notes: '' });
   const [saving, setSaving] = useState(false);
 
   const [recurring, setRecurring] = useState(false);
@@ -19,7 +21,8 @@ export default function AdminRehearsals() {
   const [recurTime, setRecurTime] = useState('19:00');
   const [recurStart, setRecurStart] = useState('');
   const [recurTitle, setRecurTitle] = useState('');
-  const [recurLocation, setRecurLocation] = useState('');
+  const [recurType, setRecurType] = useState('tutti');
+  const [recurLocationId, setRecurLocationId] = useState('');
   const [recurDuration, setRecurDuration] = useState(120);
   const [recurPreview, setRecurPreview] = useState([]);
 
@@ -29,12 +32,14 @@ export default function AdminRehearsals() {
 
   const loadData = async () => {
     try {
-      const [seasonRes, rehearsalsRes] = await Promise.all([
+      const [seasonRes, rehearsalsRes, locationsRes] = await Promise.all([
         apiClient.get(`/admin/seasons/${seasonId}`),
         apiClient.get(`/admin/seasons/${seasonId}/rehearsals`),
+        apiClient.get('/admin/locations'),
       ]);
       setSeason(seasonRes.data.data);
       setRehearsals(rehearsalsRes.data.data);
+      setLocations(locationsRes.data.data);
     } catch (e) {
       console.error('Failed to load data:', e);
     } finally {
@@ -75,11 +80,12 @@ export default function AdminRehearsals() {
   }, [recurring, recurDay, recurStart, season]);
 
   const openCreate = () => {
-    setForm({ title: '', location: '', rehearsal_date: '', duration_minutes: 120, notes: '' });
+    setForm({ title: '', rehearsal_type: 'tutti', location_id: '', rehearsal_date: '', duration_minutes: 120, notes: '' });
     setEditId(null);
     setRecurring(false);
     setRecurTitle('');
-    setRecurLocation('');
+    setRecurType('tutti');
+    setRecurLocationId('');
     setRecurDuration(120);
     setRecurTime('19:00');
     setRecurStart('');
@@ -115,7 +121,8 @@ export default function AdminRehearsals() {
     try {
       const rehearsalList = recurPreview.map((date) => ({
         title: recurTitle,
-        location: recurLocation,
+        rehearsal_type: recurType,
+        location_id: recurLocationId || null,
         rehearsal_date: `${date}T${recurTime}:00`,
         duration_minutes: recurDuration,
       }));
@@ -134,7 +141,7 @@ export default function AdminRehearsals() {
 
   const handleEdit = (r) => {
     const raw = r.rehearsal_date.replace('Z', '').slice(0, 16);
-    setForm({ title: r.title, location: r.location || '', rehearsal_date: raw, duration_minutes: r.duration_minutes, notes: r.notes || '' });
+    setForm({ title: r.title, rehearsal_type: r.rehearsal_type || 'tutti', location_id: r.location_id || '', rehearsal_date: raw, duration_minutes: r.duration_minutes, notes: r.notes || '' });
     setEditId(r.id);
     setRecurring(false);
     setShowForm(true);
@@ -170,9 +177,7 @@ export default function AdminRehearsals() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
-      <div className="mb-4">
-        <Link to="/admin/seasons" className="text-sm text-primary-600 hover:underline">{t('adminRehearsals.backToSeasons')}</Link>
-      </div>
+      <BackLink to="/admin/seasons" label={t('adminRehearsals.backToSeasons')} />
 
       <div className="flex justify-between items-center mb-6">
         <div>
@@ -209,14 +214,27 @@ export default function AdminRehearsals() {
                       className={inputClass} placeholder={t('adminRehearsals.titlePlaceholder')} required />
                   </div>
                   <div>
+                    <label className={labelClass}>{t('adminRehearsals.typeLabel')}</label>
+                    <select value={form.rehearsal_type} onChange={(e) => setForm({ ...form, rehearsal_type: e.target.value })}
+                      className={selectClass}>
+                      <option value="tutti">{t('adminRehearsals.typeTutti')}</option>
+                      <option value="sectionelle">{t('adminRehearsals.typeSectionelle')}</option>
+                    </select>
+                  </div>
+                  <div>
                     <label className={labelClass}>{t('adminRehearsals.dateTime')}</label>
                     <input type="datetime-local" value={form.rehearsal_date} onChange={(e) => setForm({ ...form, rehearsal_date: e.target.value })}
                       className={inputClass} required />
                   </div>
                   <div>
                     <label className={labelClass}>{t('adminRehearsals.location')}</label>
-                    <input type="text" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })}
-                      className={inputClass} placeholder={t('adminRehearsals.locationPlaceholder')} />
+                    <select value={form.location_id} onChange={(e) => setForm({ ...form, location_id: e.target.value })}
+                      className={selectClass}>
+                      <option value="">{t('adminRehearsals.noLocation')}</option>
+                      {locations.filter((l) => l.active || String(l.id) === String(form.location_id)).map((l) => (
+                        <option key={l.id} value={l.id}>{l.name}</option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className={labelClass}>{t('adminRehearsals.duration')}</label>
@@ -252,6 +270,14 @@ export default function AdminRehearsals() {
                     <input type="text" value={recurTitle} onChange={(e) => setRecurTitle(e.target.value)}
                       className={inputClass} placeholder={t('adminRehearsals.recurTitlePlaceholder')} required />
                   </div>
+                  <div>
+                    <label className={labelClass}>{t('adminRehearsals.typeLabel')}</label>
+                    <select value={recurType} onChange={(e) => setRecurType(e.target.value)}
+                      className={selectClass}>
+                      <option value="tutti">{t('adminRehearsals.typeTutti')}</option>
+                      <option value="sectionelle">{t('adminRehearsals.typeSectionelle')}</option>
+                    </select>
+                  </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className={labelClass}>{t('adminRehearsals.dayOfWeek')}</label>
@@ -281,8 +307,13 @@ export default function AdminRehearsals() {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className={labelClass}>{t('adminRehearsals.location')}</label>
-                      <input type="text" value={recurLocation} onChange={(e) => setRecurLocation(e.target.value)}
-                        className={inputClass} placeholder={t('adminRehearsals.locationPlaceholder')} />
+                      <select value={recurLocationId} onChange={(e) => setRecurLocationId(e.target.value)}
+                        className={selectClass}>
+                        <option value="">{t('adminRehearsals.noLocation')}</option>
+                        {locations.filter((l) => l.active).map((l) => (
+                          <option key={l.id} value={l.id}>{l.name}</option>
+                        ))}
+                      </select>
                     </div>
                     <div>
                       <label className={labelClass}>{t('adminRehearsals.durationShort')}</label>
@@ -327,16 +358,29 @@ export default function AdminRehearsals() {
                 <input type="text" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })}
                   className={inputClass} placeholder={t('adminRehearsals.titlePlaceholder')} required />
               </div>
+                <div>
+                  <label className={labelClass}>{t('adminRehearsals.typeLabel')}</label>
+                  <select value={form.rehearsal_type} onChange={(e) => setForm({ ...form, rehearsal_type: e.target.value })}
+                    className={selectClass}>
+                    <option value="tutti">{t('adminRehearsals.typeTutti')}</option>
+                    <option value="sectionelle">{t('adminRehearsals.typeSectionelle')}</option>
+                  </select>
+                </div>
               <div>
                 <label className={labelClass}>{t('adminRehearsals.dateTime')}</label>
                 <input type="datetime-local" value={form.rehearsal_date} onChange={(e) => setForm({ ...form, rehearsal_date: e.target.value })}
                   className={inputClass} required />
               </div>
-              <div>
-                <label className={labelClass}>{t('adminRehearsals.location')}</label>
-                <input type="text" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })}
-                  className={inputClass} placeholder={t('adminRehearsals.locationPlaceholder')} />
-              </div>
+                <div>
+                  <label className={labelClass}>{t('adminRehearsals.location')}</label>
+                  <select value={form.location_id} onChange={(e) => setForm({ ...form, location_id: e.target.value })}
+                    className={selectClass}>
+                    <option value="">{t('adminRehearsals.noLocation')}</option>
+                    {locations.filter((l) => l.active || String(l.id) === String(form.location_id)).map((l) => (
+                      <option key={l.id} value={l.id}>{l.name}</option>
+                    ))}
+                  </select>
+                </div>
               <div>
                 <label className={labelClass}>{t('adminRehearsals.duration')}</label>
                 <input type="number" value={form.duration_minutes} onChange={(e) => setForm({ ...form, duration_minutes: parseInt(e.target.value) })}
@@ -379,6 +423,15 @@ export default function AdminRehearsals() {
                 <div>
                   <h3 className="font-semibold text-gray-800 dark:text-gray-100">
                     {isConcert && <span className="inline-block text-xs px-1.5 py-0.5 mr-1.5 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 font-semibold">{t('musicianDashboard.concert')}</span>}
+                    {!isConcert && (
+                      <span className={`inline-block text-xs px-1.5 py-0.5 mr-1.5 rounded-full font-semibold ${
+                        r.rehearsal_type === 'sectionelle'
+                          ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
+                      }`}>
+                        {r.rehearsal_type === 'sectionelle' ? t('adminRehearsals.typeSectionelle') : t('adminRehearsals.typeTutti')}
+                      </span>
+                    )}
                     {r.title}
                   </h3>
                   <div className="flex flex-wrap gap-2 mt-2 text-xs text-gray-500 dark:text-gray-400">

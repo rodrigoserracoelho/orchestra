@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import apiClient from '../services/apiClient';
+import BackLink from '../components/Common/BackLink';
 
 const emptyConcert = { concert_date: '', label: '', venue: '', venue_address: '' };
 const emptyForm = { name: '', maestro: '', maestro_id: '', active: true, season_fee: '', concerts: [{ ...emptyConcert }] };
@@ -127,6 +128,7 @@ export default function AdminSeasons() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
+      <BackLink />
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100">{t('adminSeasons.title')}</h1>
         <button onClick={openCreate}
@@ -296,6 +298,10 @@ export default function AdminSeasons() {
                 <Link to={`/admin/seasons/${season.id}/rehearsals`}
                   className="flex-1 text-center py-2 rounded-xl bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 text-sm font-medium hover:bg-primary-100 dark:hover:bg-primary-900/50">
                   {t('adminSeasons.rehearsals')}
+                </Link>
+                <Link to={`/admin/seasons/${season.id}/polls`}
+                  className="flex-1 text-center py-2 rounded-xl bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 text-sm font-medium hover:bg-primary-100 dark:hover:bg-primary-900/50">
+                  {t('adminSeasons.polls')}
                 </Link>
               </div>
             </div>

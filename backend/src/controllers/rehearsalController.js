@@ -31,7 +31,7 @@ const rehearsalController = {
 
   async create(req, res) {
     try {
-      const { season_id, title, location, rehearsal_date, duration_minutes, notes } = req.body;
+      const { season_id, title, rehearsal_type, location, location_id, rehearsal_date, duration_minutes, notes } = req.body;
       if (!season_id || !title || !rehearsal_date) {
         return res.status(400).json({ success: false, error: 'validation', message: 'Season ID, title, and date are required' });
       }
@@ -39,7 +39,7 @@ const rehearsalController = {
       if (!season) {
         return res.status(404).json({ success: false, error: 'not_found', message: 'Season not found' });
       }
-      const rehearsal = await Rehearsal.create({ season_id, title, location, rehearsal_date, duration_minutes, notes });
+      const rehearsal = await Rehearsal.create({ season_id, title, rehearsal_type, location, location_id, rehearsal_date, duration_minutes, notes });
       res.status(201).json({ success: true, data: rehearsal, message: 'Rehearsal created' });
     } catch (error) {
       console.error('Rehearsal create error:', error);
@@ -62,7 +62,9 @@ const rehearsalController = {
         const rehearsal = await Rehearsal.create({
           season_id,
           title: r.title,
+          rehearsal_type: r.rehearsal_type,
           location: r.location || null,
+          location_id: r.location_id || null,
           rehearsal_date: r.rehearsal_date,
           duration_minutes: r.duration_minutes || 120,
           notes: r.notes || null,

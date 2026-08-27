@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import apiClient from '../services/apiClient';
+import BackLink from '../components/Common/BackLink';
 
 export default function AdminAttendance() {
   const { rehearsalId } = useParams();
@@ -41,9 +42,7 @@ export default function AdminAttendance() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
-      <div className="mb-4">
-        <Link to={`/admin/seasons/${rehearsal.season_id}/rehearsals`} className="text-sm text-primary-600 hover:underline">{t('adminAttendance.backToRehearsals')}</Link>
-      </div>
+      <BackLink to={`/admin/seasons/${rehearsal.season_id}/rehearsals`} label={t('adminAttendance.backToRehearsals')} />
 
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-5 mb-4">
         <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100">{rehearsal.title}</h1>

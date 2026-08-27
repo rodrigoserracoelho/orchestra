@@ -3,6 +3,7 @@ const router = express.Router();
 const { authenticate } = require('../middleware/auth');
 const rehearsalController = require('../controllers/rehearsalController');
 const attendanceController = require('../controllers/attendanceController');
+const pollController = require('../controllers/pollController');
 const User = require('../models/User');
 const Message = require('../models/Message');
 const News = require('../models/News');
@@ -87,6 +88,11 @@ router.get('/seasons', async (req, res) => {
 // Rehearsals
 router.get('/rehearsals', rehearsalController.upcoming);
 router.get('/seasons/:seasonId/rehearsals', rehearsalController.listBySeason);
+
+// Date polls ("Doodle") — the controller decides who a poll is addressed to
+router.get('/polls', pollController.myOpenPolls);
+router.get('/polls/:id', pollController.getForVoter);
+router.post('/polls/:id/vote', pollController.vote);
 
 // Attendance
 router.post('/attendance', attendanceController.upsert);

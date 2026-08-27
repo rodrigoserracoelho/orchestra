@@ -4,6 +4,8 @@ const { authenticate, requireAdmin } = require('../middleware/auth');
 const seasonController = require('../controllers/seasonController');
 const rehearsalController = require('../controllers/rehearsalController');
 const attendanceController = require('../controllers/attendanceController');
+const locationController = require('../controllers/locationController');
+const pollController = require('../controllers/pollController');
 const User = require('../models/User');
 const Message = require('../models/Message');
 const News = require('../models/News');
@@ -40,6 +42,22 @@ router.post('/rehearsals/bulk', rehearsalController.createBulk);
 router.get('/rehearsals/:id', rehearsalController.get);
 router.patch('/rehearsals/:id', rehearsalController.update);
 router.delete('/rehearsals/:id', rehearsalController.delete);
+
+// Date polls ("Doodle")
+router.get('/seasons/:seasonId/polls', pollController.listBySeason);
+router.post('/polls', pollController.create);
+router.get('/polls/:id', pollController.get);
+router.patch('/polls/:id', pollController.update);
+router.post('/polls/:id/close', pollController.close);
+router.post('/polls/:id/reopen', pollController.reopen);
+router.delete('/polls/:id', pollController.delete);
+
+// Locations (admin-only CRUD; the whole router is behind requireAdmin)
+router.get('/locations', locationController.list);
+router.post('/locations', locationController.create);
+router.get('/locations/:id', locationController.get);
+router.patch('/locations/:id', locationController.update);
+router.delete('/locations/:id', locationController.delete);
 
 // Attendance
 router.get('/rehearsals/:id/attendance', attendanceController.byRehearsal);

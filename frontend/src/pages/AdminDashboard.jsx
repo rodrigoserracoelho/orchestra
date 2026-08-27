@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import apiClient from '../services/apiClient';
+import FeatureGrid from '../components/Common/FeatureGrid';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
@@ -51,6 +52,8 @@ export default function AdminDashboard() {
         <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100">{t('adminDashboard.welcome', { name: user?.name })}</h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('adminDashboard.subtitle')}</p>
       </div>
+
+      <FeatureGrid />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         {[

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import apiClient from '../services/apiClient';
+import BackLink from '../components/Common/BackLink';
 
 export default function AdminMessages() {
   const { t, currentLang } = useLanguage();
@@ -107,6 +108,7 @@ export default function AdminMessages() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
+      <BackLink />
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100">{t('adminMessages.title')}</h1>
         <button onClick={openCreate}

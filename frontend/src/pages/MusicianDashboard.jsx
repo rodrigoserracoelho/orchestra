@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import apiClient from '../services/apiClient';
+import FeatureGrid from '../components/Common/FeatureGrid';
 
 export default function MusicianDashboard() {
   const { user } = useAuth();
@@ -137,6 +138,8 @@ export default function MusicianDashboard() {
         </p>
       </div>
 
+      <FeatureGrid />
+
       {seasons.length === 0 ? (
         <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-2xl shadow-sm">
           <span className="text-4xl">&#127926;</span>
@@ -225,6 +228,9 @@ export default function MusicianDashboard() {
                         <div>
                           <div className="flex items-center gap-2">
                             {isConcert && <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 font-semibold">{t('musicianDashboard.concert')}</span>}
+                            {!isConcert && rehearsal.rehearsal_type === 'sectionelle' && (
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 font-semibold">{t('adminRehearsals.typeSectionelle')}</span>
+                            )}
                             <h3 className="font-semibold text-gray-800 dark:text-gray-100">{rehearsal.title}</h3>
                           </div>
                           {past && <span className="text-xs text-gray-400 dark:text-gray-500 italic">{t('musicianDashboard.past')}</span>}
