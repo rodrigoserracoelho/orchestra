@@ -6,6 +6,11 @@ const pool = mysql.createPool({
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_NAME || 'orchestra_attendance',
+  // DATETIME columns hold wall-clock time. Without this mysql2 reads them in
+  // the Node process's timezone and JSON then serialises them as UTC, so every
+  // date comes out shifted by the server's offset (invisible on a UTC host,
+  // two hours wrong on a Brussels laptop).
+  timezone: 'Z',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,

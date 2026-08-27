@@ -24,6 +24,7 @@ export default function AdminPolls() {
   const [saving, setSaving] = useState(false);
   const [openPoll, setOpenPoll] = useState(null);
   const [results, setResults] = useState(null);
+  const [showSilent, setShowSilent] = useState(false);
 
   useEffect(() => { loadData(); }, [seasonId]);
 
@@ -46,6 +47,7 @@ export default function AdminPolls() {
 
   const loadResults = async (pollId) => {
     if (openPoll === pollId) { setOpenPoll(null); setResults(null); return; }
+    setShowSilent(false);
     try {
       const res = await apiClient.get(`/admin/polls/${pollId}`);
       setResults(res.data.data);
@@ -157,6 +159,23 @@ export default function AdminPolls() {
 
   const voteFor = (optionId, userId) =>
     results.votes.find((v) => v.option_id === optionId && v.user_id === userId)?.availability;
+
+  // Who said what on one date, for the phone layout.
+  const namesFor = (optionId, availability) => results.votes
+    .filter((v) => v.option_id === optionId && v.availability === availability)
+    .map((v) => results.voters.find((u) => u.id === v.user_id)?.name)
+    .filter(Boolean);
+
+  // A 60-strong orchestra makes a full roster unreadable; the people who
+  // actually answered are the ones an organiser is reading.
+  const answered = results
+    ? results.voters.filter((v) => results.votes.some((x) => x.user_id === v.id))
+    : [];
+  const silentCount = results ? results.voters.length - answered.length : 0;
+  const shownVoters = showSilent ? (results?.voters ?? []) : answered;
+  const silentNames = results
+    ? results.voters.filter((v) => !answered.includes(v)).map((v) => v.name)
+    : [];
 
   const CELL = {
     yes: { mark: '✓', cls: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300' },
@@ -351,59 +370,118 @@ export default function AdminPolls() {
                 </button>
 
                 {openPoll === p.id && results && (
-                  <div className="mt-3 overflow-x-auto">
-                    <table className="w-full text-xs">
-                      <thead>
-                        <tr>
-                          <th className="text-left p-2 font-medium text-gray-600 dark:text-gray-300">{t('adminPolls.musician')}</th>
-                          {results.options.map((o) => (
-                            <th key={o.id} className={`p-2 font-medium whitespace-nowrap ${
-                              o.id === bestOptionId ? 'text-primary-700 dark:text-primary-300' : 'text-gray-600 dark:text-gray-300'
-                            }`}>
-                              {formatSlot(o.option_date)}
-                              <div className="font-normal text-[11px] text-gray-400 dark:text-gray-500">
-                                {o.yes_count} &#10003; &middot; {o.maybe_count} ? &middot; {o.no_count} &#10007;
-                              </div>
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {results.voters.map((v) => (
-                          <tr key={v.id} className="border-t border-gray-100 dark:border-gray-700">
-                            <td className="p-2 text-gray-700 dark:text-gray-200 whitespace-nowrap">
-                              {v.name}
-                              {v.instrument && <span className="text-gray-400 dark:text-gray-500"> &middot; {v.instrument}</span>}
-                            </td>
-                            {results.options.map((o) => {
-                              const cell = CELL[voteFor(o.id, v.id)];
-                              return (
-                                <td key={o.id} className="p-1 text-center">
-                                  <span className={`inline-block w-6 h-6 leading-6 rounded-full font-semibold ${
-                                    cell ? cell.cls : 'bg-gray-100 dark:bg-gray-700 text-gray-300 dark:text-gray-500'
-                                  }`}>
-                                    {cell ? cell.mark : '·'}
-                                  </span>
-                                </td>
-                              );
-                            })}
+                  <div className="mt-3">
+                    {/* Per-date cards: on a phone this is the only layout that
+                        lets you compare dates without scrolling a 60-row grid. */}
+                    <div className="space-y-2 sm:hidden">
+                      {results.options.map((o) => {
+                        const noReply = results.voters.length - (o.yes_count + o.maybe_count + o.no_count);
+                        return (
+                          <div key={o.id} className={`rounded-xl border p-3 ${
+                            o.id === bestOptionId
+                              ? 'border-primary-300 dark:border-primary-700 bg-primary-50/60 dark:bg-primary-900/20'
+                              : 'border-gray-200 dark:border-gray-700'
+                          }`}>
+                            <div className="flex items-baseline justify-between gap-2">
+                              <span className="text-sm font-semibold text-gray-800 dark:text-gray-100">{formatSlot(o.option_date)}</span>
+                              {o.id === bestOptionId && (
+                                <span className="text-[10px] font-bold uppercase tracking-wide text-primary-700 dark:text-primary-300">{t('adminPolls.best')}</span>
+                              )}
+                            </div>
+                            <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5 text-xs">
+                              <span className="text-green-700 dark:text-green-400 font-medium">{o.yes_count} &#10003;</span>
+                              <span className="text-yellow-700 dark:text-yellow-400 font-medium">{o.maybe_count} ?</span>
+                              <span className="text-red-600 dark:text-red-400 font-medium">{o.no_count} &#10007;</span>
+                              <span className="text-gray-400 dark:text-gray-500">{tp('adminPolls.noReply', noReply)}</span>
+                            </div>
+                            {namesFor(o.id, 'yes').length > 0 && (
+                              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+                                <span className="text-green-700 dark:text-green-400">&#10003;</span> {namesFor(o.id, 'yes').join(', ')}
+                              </p>
+                            )}
+                            {namesFor(o.id, 'maybe').length > 0 && (
+                              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+                                <span className="text-yellow-700 dark:text-yellow-400">?</span> {namesFor(o.id, 'maybe').join(', ')}
+                              </p>
+                            )}
+                            {namesFor(o.id, 'no').length > 0 && (
+                              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+                                <span className="text-red-600 dark:text-red-400">&#10007;</span> {namesFor(o.id, 'no').join(', ')}
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* The classic grid, kept where there is room for it. */}
+                    <div className="hidden sm:block overflow-x-auto">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr>
+                            <th className="text-left p-2 font-medium text-gray-600 dark:text-gray-300">{t('adminPolls.musician')}</th>
+                            {results.options.map((o) => (
+                              <th key={o.id} className={`p-2 font-medium whitespace-nowrap ${
+                                o.id === bestOptionId ? 'text-primary-700 dark:text-primary-300' : 'text-gray-600 dark:text-gray-300'
+                              }`}>
+                                {formatSlot(o.option_date)}
+                                <div className="font-normal text-[11px] text-gray-400 dark:text-gray-500">
+                                  {o.yes_count} &#10003; &middot; {o.maybe_count} ? &middot; {o.no_count} &#10007;
+                                </div>
+                              </th>
+                            ))}
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {shownVoters.map((v) => (
+                            <tr key={v.id} className="border-t border-gray-100 dark:border-gray-700">
+                              <td className="p-2 text-gray-700 dark:text-gray-200 whitespace-nowrap">
+                                {v.name}
+                                {v.instrument && <span className="text-gray-400 dark:text-gray-500"> &middot; {v.instrument}</span>}
+                              </td>
+                              {results.options.map((o) => {
+                                const cell = CELL[voteFor(o.id, v.id)];
+                                return (
+                                  <td key={o.id} className="p-1 text-center">
+                                    <span className={`inline-block w-6 h-6 leading-6 rounded-full font-semibold ${
+                                      cell ? cell.cls : 'bg-gray-100 dark:bg-gray-700 text-gray-300 dark:text-gray-500'
+                                    }`}>
+                                      {cell ? cell.mark : '\u00b7'}
+                                    </span>
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {showSilent && silentCount > 0 && (
+                      <p className="sm:hidden mt-2 text-xs text-gray-400 dark:text-gray-500 leading-relaxed">
+                        {silentNames.join(', ')}
+                      </p>
+                    )}
+
+                    {silentCount > 0 && (
+                      <button onClick={() => setShowSilent(!showSilent)}
+                        className="mt-2 text-xs text-primary-600 dark:text-primary-400 hover:underline">
+                        {showSilent ? t('adminPolls.hideSilent') : tp('adminPolls.showSilent', silentCount)}
+                      </button>
+                    )}
 
                     {!closed && (
-                      <div className="mt-3 space-y-2">
+                      <div className="mt-4 space-y-2">
                         <p className="text-xs font-medium text-gray-600 dark:text-gray-300">{t('adminPolls.pickWinner')}</p>
                         {results.options.map((o) => (
                           <button key={o.id} onClick={() => handleClose(p.id, o.id)}
-                            className={`block w-full text-left px-3 py-2 rounded-xl text-sm border ${
+                            className={`flex w-full items-center justify-between gap-2 text-left px-3 py-2.5 rounded-xl text-sm border ${
                               o.id === bestOptionId
                                 ? 'border-primary-300 dark:border-primary-700 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
                                 : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                             }`}>
-                            {formatSlot(o.option_date)}
-                            <span className="float-right">{o.yes_count} &#10003;</span>
+                            <span>{formatSlot(o.option_date)}</span>
+                            <span className="font-medium">{o.yes_count} &#10003;</span>
                           </button>
                         ))}
                       </div>

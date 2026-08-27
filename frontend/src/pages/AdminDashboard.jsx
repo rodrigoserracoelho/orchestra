@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import apiClient from '../services/apiClient';
 import FeatureGrid from '../components/Common/FeatureGrid';
+import Icon from '../components/Common/Icon';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
@@ -57,14 +58,14 @@ export default function AdminDashboard() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         {[
-          { label: t('adminDashboard.musicians'), value: stats.musicians.length, icon: '\u{1F465}', to: '/admin/musicians' },
-          { label: t('adminDashboard.seasons'), value: stats.seasons.length, icon: '\u{1F3BC}', to: '/admin/seasons' },
-          { label: t('adminDashboard.upcoming'), value: stats.upcomingRehearsals.length, icon: '\u{1F4C5}', to: stats.seasons[0] ? `/admin/seasons/${stats.seasons[0].id}/rehearsals` : '#' },
-          { label: t('adminDashboard.emailsSent'), value: stats.emailsSent, icon: '\u{1F4E7}', to: '#' },
+          { label: t('adminDashboard.musicians'), value: stats.musicians.length, icon: 'manage', to: '/admin/musicians' },
+          { label: t('adminDashboard.seasons'), value: stats.seasons.length, icon: 'seasons', to: '/admin/seasons' },
+          { label: t('adminDashboard.upcoming'), value: stats.upcomingRehearsals.length, icon: 'calendar', to: stats.seasons[0] ? `/admin/seasons/${stats.seasons[0].id}/rehearsals` : '#' },
+          { label: t('adminDashboard.emailsSent'), value: stats.emailsSent, icon: 'messages', to: '#' },
         ].map((stat) => (
           <Link key={stat.label} to={stat.to}
             className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 hover:shadow-md transition-shadow">
-            <div className="text-2xl">{stat.icon}</div>
+            <Icon name={stat.icon} size={22} className="text-primary-600 dark:text-primary-400" />
             <div className="text-2xl font-bold text-gray-800 dark:text-gray-100 mt-2">{stat.value}</div>
             <div className="text-xs text-gray-500 dark:text-gray-400">{stat.label}</div>
           </Link>

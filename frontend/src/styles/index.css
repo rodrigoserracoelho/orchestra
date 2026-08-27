@@ -58,3 +58,7 @@ body, header, nav, main, div, section {
     min-width: 44px;
   }
 }
+
+/* Horizontal launcher row: scrollable without a visible scrollbar */
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
