@@ -34,6 +34,24 @@ const Attendance = {
     return rows;
   },
 
+  // Everything a musician has accepted in one season, with the venue resolved
+  // the way the rehearsal list resolves it, for the calendar export.
+  async findAcceptedInSeason(userId, seasonId) {
+    const [rows] = await pool.execute(
+      `SELECT r.id, r.title, r.rehearsal_date, r.duration_minutes, r.notes, r.concert_id,
+              COALESCE(l.name, c.venue, r.location) AS location,
+              COALESCE(l.address, c.venue_address) AS location_address
+       FROM attendance a
+       JOIN rehearsals r ON a.rehearsal_id = r.id
+       LEFT JOIN locations l ON r.location_id = l.id
+       LEFT JOIN concerts c ON r.concert_id = c.id
+       WHERE a.user_id = ? AND r.season_id = ? AND a.status = 'attending'
+       ORDER BY r.rehearsal_date ASC`,
+      [userId, seasonId]
+    );
+    return rows;
+  },
+
   async upsert({ rehearsal_id, user_id, status, notes }) {
     await pool.execute(
       `INSERT INTO attendance (rehearsal_id, user_id, status, notes, response_date)

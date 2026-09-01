@@ -4,6 +4,7 @@ const { authenticate } = require('../middleware/auth');
 const rehearsalController = require('../controllers/rehearsalController');
 const attendanceController = require('../controllers/attendanceController');
 const pollController = require('../controllers/pollController');
+const calendarController = require('../controllers/calendarController');
 const User = require('../models/User');
 const Message = require('../models/Message');
 const News = require('../models/News');
@@ -93,6 +94,9 @@ router.get('/seasons/:seasonId/rehearsals', rehearsalController.listBySeason);
 router.get('/polls', pollController.myOpenPolls);
 router.get('/polls/:id', pollController.getForVoter);
 router.post('/polls/:id/vote', pollController.vote);
+
+// Calendar export (.ics) of the rehearsals this musician accepted
+router.get('/seasons/:seasonId/calendar.ics', calendarController.mySeasonCalendar);
 
 // Attendance
 router.post('/attendance', attendanceController.upsert);

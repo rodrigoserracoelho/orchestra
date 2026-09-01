@@ -4,7 +4,7 @@
 
 # Orchestra Manager
 
-A mobile-first web app for managing an orchestra: rehearsal attendance, date polls, season & concert planning, musician management, news, CMS pages, and internal messaging.
+A mobile-first web app for managing an orchestra: rehearsal attendance, date polls, calendar export, season & concert planning, musician management, news, CMS pages, and internal messaging.
 
 ## Tech Stack
 
@@ -19,6 +19,7 @@ A mobile-first web app for managing an orchestra: rehearsal attendance, date pol
 ### For Musicians
 - **Attendance**: Mark availability (Attending / Not Attending / Maybe) per rehearsal and concert
 - **Availability polls**: Answer "Doodle"-style date polls — mark which of the proposed slots you can make before a rehearsal is scheduled
+- **Calendar export**: Download the rehearsals you have accepted as an `.ics` file and open it in Apple Calendar, Google Calendar or Outlook
 - **Online payment**: Pay the season fee with a SEPA bank transfer — the app generates an EPC QR code and structured communication for one-tap payment from any Belgian bank app
 - **Profile & directory**: Add a profile photo and short bio; browse fellow members in a directory grouped by instrument (opt-out toggle in your profile)
 - **Season info**: View season details and concerts (maestro, venues with Google Maps links, dates)
@@ -201,6 +202,38 @@ moved on since.
 - Votes are rejected once the response deadline passes
 - Polls are visible to musicians and section leaders; admins and the maestro are not polled for availability
 
+## Calendar export (.ics)
+
+Musicians can take the rehearsals they have accepted into their own calendar. The
+button sits next to the event count in the rehearsal list and is hidden when
+nothing has been accepted yet.
+
+- **Scope**: the season currently selected, and only events answered **Attending**
+  — rehearsals and concerts alike. The label shows the count ("Add 7 to calendar").
+- **Endpoint**: `GET /api/musician/seasons/:seasonId/calendar.ics`, on the musician
+  router so every player can reach it. It needs the bearer token, so the frontend
+  fetches it and hands the browser a blob rather than using a plain link.
+- **Format**: RFC 5545 — CRLF line endings, 75-octet line folding, escaped text,
+  and one stable `UID` per rehearsal so re-importing updates an event instead of
+  duplicating it.
+- **Times** carry `TZID=Europe/Brussels` with a matching `VTIMEZONE` block rather
+  than being converted to UTC, which would need per-date DST arithmetic. This
+  relies on the pool's `timezone: 'Z'` setting (see below) — without it every
+  exported time shifts by the server's UTC offset.
+
+It is a **snapshot, not a subscription**: re-export after a schedule change to get
+the new times. A subscribable `webcal://` feed would keep itself up to date, but
+needs a per-user secret in the URL because calendar clients cannot send an auth
+header — worth adding if members ask for it.
+
+### A note on DATETIME handling
+
+`backend/src/config/database.js` pins the connection to `timezone: 'Z'`. Rehearsal
+times are stored as wall-clock values; without the pin, mysql2 reads them in the
+Node process's timezone and JSON then serialises them as UTC, so every date in the
+app comes out shifted by the server's offset — invisible on a UTC host, two hours
+wrong on a Brussels laptop.
+
 ## Database
 
 ### Migrations
@@ -248,7 +281,7 @@ Located in `backend/migrations/`. Tracked via a `schema_migrations` table for id
 │   │   ├── middleware/      # Auth, file upload
 │   │   ├── models/         # Data access (MySQL queries)
 │   │   ├── routes/         # API routes (admin, musician, maestro, section-leader, public, auth)
-│   │   └── services/       # Email, auth code services
+│   │   └── services/       # Email, auth code, iCalendar services
 │   ├── migrations/         # SQL migration files
 │   └── server.js           # Express entry point
 ├── frontend/

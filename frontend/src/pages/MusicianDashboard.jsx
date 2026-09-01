@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import apiClient from '../services/apiClient';
 import FeatureGrid from '../components/Common/FeatureGrid';
+import Icon from '../components/Common/Icon';
 
 export default function MusicianDashboard() {
   const { user } = useAuth();
@@ -20,6 +21,29 @@ export default function MusicianDashboard() {
   const [paymentsEnabled, setPaymentsEnabled] = useState(false);
   const [transferInfo, setTransferInfo] = useState(null);
   const [transferError, setTransferError] = useState('');
+  const [exporting, setExporting] = useState(false);
+
+  const acceptedCount = rehearsals.filter((r) => myAttendance[r.id] === 'attending').length;
+
+  const handleExportCalendar = async () => {
+    setExporting(true);
+    try {
+      const res = await apiClient.get(`/musician/seasons/${selectedSeason}/calendar.ics`, { responseType: 'blob' });
+      const season = seasons.find((x) => x.id === selectedSeason);
+      const url = URL.createObjectURL(new Blob([res.data], { type: 'text/calendar' }));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${(season?.name || 'rehearsals').replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase()}.ics`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert(t('musicianDashboard.exportFailed'));
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const STATUS_CONFIG = {
     attending: { label: t('attendance.attending'), bg: 'bg-green-50 dark:bg-green-900/30', border: 'border-green-200 dark:border-green-800', text: 'text-green-700 dark:text-green-400', btnBg: 'bg-green-500 hover:bg-green-600' },
@@ -209,7 +233,16 @@ export default function MusicianDashboard() {
             </div>
           ) : (
             <div className="space-y-3">
-              <p className="text-sm text-gray-500 dark:text-gray-400">{tp('musicianDashboard.events', rehearsals.length)}</p>
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm text-gray-500 dark:text-gray-400">{tp('musicianDashboard.events', rehearsals.length)}</p>
+                {acceptedCount > 0 && (
+                  <button onClick={handleExportCalendar} disabled={exporting}
+                    className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50">
+                    <Icon name="calendar" size={15} />
+                    {exporting ? t('musicianDashboard.exporting') : tp('musicianDashboard.exportCalendar', acceptedCount)}
+                  </button>
+                )}
+              </div>
               {rehearsals.map((rehearsal) => {
                 const currentStatus = myAttendance[rehearsal.id];
                 const statusConf = currentStatus ? STATUS_CONFIG[currentStatus] : null;
