@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import apiClient from '../services/apiClient';
 import BackLink from '../components/Common/BackLink';
+import ConcertTimes from '../components/Common/ConcertTimes';
 
 export default function AdminRehearsals() {
   const { seasonId } = useParams();
@@ -436,7 +437,9 @@ export default function AdminRehearsals() {
                   </h3>
                   <div className="flex flex-wrap gap-2 mt-2 text-xs text-gray-500 dark:text-gray-400">
                     <span>&#128197; {formatDate(r.rehearsal_date)}</span>
-                    <span>&#128336; {formatTime(r.rehearsal_date)}</span>
+                    {isConcert && (r.warmup_time || r.concert_time)
+                      ? <ConcertTimes warmup={r.warmup_time} start={r.concert_time} />
+                      : <span>&#128336; {formatTime(r.rehearsal_date)}</span>}
                     {r.location && <span>&#128205; {r.location}</span>}
                     {!isConcert && <span>&#9201; {r.duration_minutes} {t('common.min')}</span>}
                   </div>

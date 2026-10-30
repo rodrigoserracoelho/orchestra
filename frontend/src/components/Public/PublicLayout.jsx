@@ -3,6 +3,8 @@ import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import { useTheme } from '../../context/ThemeContext';
 import apiClient from '../../services/apiClient';
+import { ORG_NAME, ORG_LEGAL_NAME, LOGO_LIGHT, LOGO_DARK } from '../../config/branding';
+import Brand from '../Common/Brand';
 
 export default function PublicLayout() {
   const { t, cycleLanguage, currentLang } = useLanguage();
@@ -37,8 +39,7 @@ export default function PublicLayout() {
       <header className="bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-900/30">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link to="/site" className="flex items-center gap-2">
-            <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Philharmonique d'Uccle" className="h-10" />
-            <span className="font-bold text-lg text-gray-800 dark:text-gray-100 hidden sm:inline">Philharmonique d'Uccle</span>
+            <Brand />
           </Link>
 
           <nav className="hidden md:flex items-center gap-5">
@@ -102,8 +103,9 @@ export default function PublicLayout() {
         <div className="max-w-5xl mx-auto px-4 py-8">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-2">
-              <img src={`${import.meta.env.BASE_URL}logo.png`} alt="" className="h-8" />
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Association Philharmonique d'Uccle</span>
+              <img src={`${import.meta.env.BASE_URL}${LOGO_LIGHT}`} alt="" className="h-8 w-auto object-contain max-w-[150px] dark:hidden" />
+              <img src={`${import.meta.env.BASE_URL}${LOGO_DARK}`} alt="" className="h-8 w-auto object-contain max-w-[150px] hidden dark:block" />
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">{ORG_LEGAL_NAME}</span>
             </div>
             <div className="flex gap-4 text-sm text-gray-500 dark:text-gray-400">
               {allLinks.map((link) => (

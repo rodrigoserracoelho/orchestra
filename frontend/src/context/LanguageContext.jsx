@@ -1,8 +1,9 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 
 import en from '../translations/en.json';
 import fr from '../translations/fr.json';
 import nl from '../translations/nl.json';
+import { getItem, setItem } from '../services/storage';
 
 const translations = { en, fr, nl };
 
@@ -20,11 +21,17 @@ function getNestedValue(obj, path) {
 
 export function LanguageProvider({ children }) {
   const [language, setLanguageState] = useState(() => {
-    return localStorage.getItem('language') || 'en';
+    return getItem('language') || 'en';
   });
 
+  // Keep <html lang> honest. A page that declares English while showing French
+  // is what prompts Chrome to offer a translation in the first place.
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
+
   const setLanguage = (lang) => {
-    localStorage.setItem('language', lang);
+    setItem('language', lang);
     setLanguageState(lang);
   };
 

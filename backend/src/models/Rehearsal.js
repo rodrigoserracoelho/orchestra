@@ -1,6 +1,12 @@
 const { pool } = require('../config/database');
+const { appNow } = require('../config/time');
 
 const REHEARSAL_TYPES = ['tutti', 'sectionelle'];
+
+// "Upcoming" means not finished yet, not merely not started: a rehearsal that
+// began an hour ago is still the one you are walking into. The bound parameter
+// is appNow() rather than SQL NOW() — see config/time.js.
+const NOT_OVER = 'DATE_ADD(r.rehearsal_date, INTERVAL COALESCE(r.duration_minutes, 120) MINUTE) >= ?';
 
 // Locations moved from free text to a managed list. Rows created before that
 // still carry their text in `location`, so the joined name wins when present
@@ -15,7 +21,8 @@ const Rehearsal = {
     const [rows] = await pool.execute(
       `SELECT r.*, s.name as season_name,
               l.name as location_name, l.address as location_address,
-              c.venue as concert_venue, c.venue_address as concert_venue_address
+              c.venue as concert_venue, c.venue_address as concert_venue_address,
+              c.concert_time, c.warmup_time
        FROM rehearsals r
        JOIN seasons s ON r.season_id = s.id
        LEFT JOIN locations l ON r.location_id = l.id
@@ -26,18 +33,21 @@ const Rehearsal = {
     return rows[0] ? withLocation(rows[0]) : null;
   },
 
-  async findBySeasonId(seasonId) {
+  // upcomingOnly is for the musician views: players are shown what is still
+  // ahead of them, while staff views keep the whole season for attendance.
+  async findBySeasonId(seasonId, { upcomingOnly = false } = {}) {
     const [rows] = await pool.execute(
       `SELECT r.*, s.name as season_name,
               l.name as location_name, l.address as location_address,
-              c.venue as concert_venue, c.venue_address as concert_venue_address
+              c.venue as concert_venue, c.venue_address as concert_venue_address,
+              c.concert_time, c.warmup_time
        FROM rehearsals r
        JOIN seasons s ON r.season_id = s.id
        LEFT JOIN locations l ON r.location_id = l.id
        LEFT JOIN concerts c ON r.concert_id = c.id
-       WHERE r.season_id = ?
+       WHERE r.season_id = ?${upcomingOnly ? ` AND ${NOT_OVER}` : ''}
        ORDER BY r.rehearsal_date ASC`,
-      [seasonId]
+      upcomingOnly ? [seasonId, appNow()] : [seasonId]
     );
     return rows.map(withLocation);
   },
@@ -49,10 +59,10 @@ const Rehearsal = {
        FROM rehearsals r
        JOIN seasons s ON r.season_id = s.id
        LEFT JOIN locations l ON r.location_id = l.id
-       WHERE r.rehearsal_date >= NOW()
+       WHERE ${NOT_OVER}
        ORDER BY r.rehearsal_date ASC
        LIMIT ?`,
-      [String(limit)]
+      [appNow(), String(limit)]
     );
     return rows.map(withLocation);
   },
@@ -108,3 +118,4 @@ const Rehearsal = {
 
 module.exports = Rehearsal;
 module.exports.REHEARSAL_TYPES = REHEARSAL_TYPES;
+module.exports.NOT_OVER = NOT_OVER;

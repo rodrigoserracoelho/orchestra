@@ -37,7 +37,8 @@ A mobile-first web app for managing an orchestra: rehearsal attendance, date pol
 - **Availability polls**: Answer date polls like any other player (section leaders play too)
 
 ### For Admins
-- **Season management**: Create seasons with concerts (date, venue, address), set fees, assign maestro
+- **Season management**: Create seasons with concerts (date, times, venue, address), set fees, assign maestro
+- **Concert times**: A concert carries a start time plus an optional warm-up (*raccord*) time. The linked rehearsal entry — the one musicians answer and export to their calendar — begins at the raccord and runs to the end of the concert. The public site shows the concert time only; the raccord is an internal call time
 - **Rehearsal planning**: Single or recurring rehearsals (auto-generated until concert date), each marked **Tutti** (full orchestra) or **Sectionelle** (sectional)
 - **Locations**: Manage the list of rehearsal venues (name, address, notes); rehearsals pick from a combo box instead of retyping the venue. Locations can be deactivated to hide them from new rehearsals
 - **Date polls**: Propose several slots, see who can make each one in a Doodle-style grid, then close the poll on the winning slot — this creates the rehearsal and pre-fills attendance from the responses
@@ -270,6 +271,7 @@ Located in `backend/migrations/`. Tracked via a `schema_migrations` table for id
 | 016 | Rehearsal type (Tutti / Sectionelle) |
 | 017 | Rehearsal locations table + `location_id` on rehearsals (backfills existing free-text venues) |
 | 018 | Date polls: polls, poll options, and per-musician availability votes |
+| 019 | Concert start time and warm-up (raccord) time on concerts |
 
 ## Project Structure
 

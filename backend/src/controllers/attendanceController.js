@@ -64,6 +64,17 @@ const attendanceController = {
   },
 
   // Admin: get full season attendance grid
+  // Per-member totals for the Manage Musicians list.
+  async seasonStats(req, res) {
+    try {
+      const rows = await Attendance.getSeasonStats(req.params.seasonId);
+      res.json({ success: true, data: rows });
+    } catch (error) {
+      console.error('Season stats error:', error);
+      res.status(500).json({ success: false, error: 'server_error', message: 'Failed to fetch attendance stats' });
+    }
+  },
+
   async seasonGrid(req, res) {
     try {
       const rows = await Attendance.getSeasonSummary(req.params.seasonId);

@@ -8,6 +8,7 @@
     "dev": "nodemon server.js",
     "migrate": "node migrations/run.js",
     "seed": "node seeds/seedDatabase.js",
+    "create-admin": "node seeds/createAdmin.js",
     "test": "jest --coverage"
   },
   "dependencies": {

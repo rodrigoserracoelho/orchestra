@@ -4,7 +4,10 @@ import { useLanguage } from '../context/LanguageContext';
 import apiClient from '../services/apiClient';
 import BackLink from '../components/Common/BackLink';
 
-const emptyConcert = { concert_date: '', label: '', venue: '', venue_address: '' };
+const emptyConcert = { concert_date: '', warmup_time: '', concert_time: '', label: '', venue: '', venue_address: '' };
+
+// MySQL hands back TIME as 'HH:MM:SS'; <input type="time"> wants 'HH:MM'.
+const toInputTime = (v) => (v ? String(v).slice(0, 5) : '');
 const emptyForm = { name: '', maestro: '', maestro_id: '', active: true, season_fee: '', concerts: [{ ...emptyConcert }] };
 
 export default function AdminSeasons() {
@@ -58,6 +61,8 @@ export default function AdminSeasons() {
         ? season.concerts.map((c) => ({
             id: c.id,
             concert_date: c.concert_date.split('T')[0],
+            warmup_time: toInputTime(c.warmup_time),
+            concert_time: toInputTime(c.concert_time),
             label: c.label || '',
             venue: c.venue || '',
             venue_address: c.venue_address || '',
@@ -74,6 +79,11 @@ export default function AdminSeasons() {
     const validConcerts = form.concerts.filter((c) => c.concert_date);
     if (validConcerts.length === 0) {
       setSaveError(t('adminSeasons.concertRequired'));
+      return;
+    }
+    // Both are plain 'HH:MM', so a string compare is a time compare.
+    if (validConcerts.some((c) => c.warmup_time && c.concert_time && c.warmup_time > c.concert_time)) {
+      setSaveError(t('adminSeasons.warmupAfterConcert'));
       return;
     }
     setSaving(true);
@@ -218,6 +228,18 @@ export default function AdminSeasons() {
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
+                        <label className="block text-xs text-gray-500 dark:text-gray-400 mb-0.5">{t('adminSeasons.warmupTime')}</label>
+                        <input type="time" value={c.warmup_time} onChange={(e) => updateConcert(i, 'warmup_time', e.target.value)}
+                          className={inputClass} />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 dark:text-gray-400 mb-0.5">{t('adminSeasons.concertTime')}</label>
+                        <input type="time" value={c.concert_time} onChange={(e) => updateConcert(i, 'concert_time', e.target.value)}
+                          className={inputClass} />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
                         <label className="block text-xs text-gray-500 dark:text-gray-400 mb-0.5">{t('adminSeasons.venue')}</label>
                         <input type="text" value={c.venue} onChange={(e) => updateConcert(i, 'venue', e.target.value)}
                           className={inputClass} placeholder={t('adminSeasons.venuePlaceholder')} />
@@ -275,6 +297,12 @@ export default function AdminSeasons() {
                       {season.concerts.map((c, i) => (
                         <div key={i} className="text-sm text-gray-500 dark:text-gray-400">
                           <span>&#127926; {formatDate(c.concert_date)}</span>
+                          {c.concert_time && <span className="ml-1">&#128336; {toInputTime(c.concert_time)}</span>}
+                          {c.warmup_time && (
+                            <span className="text-xs text-gray-400 dark:text-gray-500 ml-1">
+                              ({t('adminSeasons.warmupShort')} {toInputTime(c.warmup_time)})
+                            </span>
+                          )}
                           {c.label && <span className="text-xs text-gray-400 dark:text-gray-500 ml-1">&mdash; {c.label}</span>}
                           {c.venue && (
                             <span className="text-xs text-gray-400 dark:text-gray-500 ml-2">

@@ -1,12 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" translate="no">
   <head>
     <meta charset="UTF-8" />
+    <!-- Browser translation rewrites text nodes underneath React, which then
+         throws "Failed to execute 'removeChild' on 'Node'" on the next render
+         and takes the whole page down. The app ships its own EN/FR/NL
+         switcher, so machine translation adds nothing and costs a crash. -->
+    <meta name="google" content="notranslate" />
     <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#4263eb" />
-    <meta name="description" content="Orchestra Rehearsal Attendance Management" />
-    <title>Orchestra Attendance</title>
+    <meta name="description" content="Rehearsals, attendance and concerts" />
+    <title>Orchestra</title>
   </head>
   <body>
     <div id="root"></div>

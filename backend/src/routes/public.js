@@ -40,11 +40,14 @@ router.get('/concerts', async (req, res) => {
       for (const c of (season.concerts || [])) {
         const concertDate = new Date(c.concert_date);
         if (concertDate >= now) {
+          // warmup_time is left out on purpose: the raccord is a call time for the
+          // players, not something the audience should read.
           concerts.push({
             id: c.id,
             season_name: season.name,
             maestro: season.maestro,
             concert_date: c.concert_date,
+            concert_time: c.concert_time,
             label: c.label,
             venue: c.venue,
             venue_address: c.venue_address,

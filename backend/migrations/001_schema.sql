@@ -1,9 +1,10 @@
 -- Orchestra Attendance Database Schema
--- Note: When using Docker, the database is created automatically by MYSQL_DATABASE env var.
--- The CREATE DATABASE / USE statements below are kept for non-Docker setups.
-
-CREATE DATABASE IF NOT EXISTS orchestra_attendance;
-USE orchestra_attendance;
+--
+-- Deliberately does NOT name a database. The container entrypoint runs this
+-- with --database=$MYSQL_DATABASE, and the deploy script passes the database
+-- explicitly, so the same file works for every instance. A hard-coded
+-- CREATE DATABASE/USE here breaks any instance whose DB is not named
+-- orchestra_attendance (its user has no rights to that name).
 
 -- Users table
 CREATE TABLE IF NOT EXISTS users (

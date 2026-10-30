@@ -1,4 +1,6 @@
 const { pool } = require('../config/database');
+const { NOT_OVER } = require('./Rehearsal');
+const { appNow } = require('../config/time');
 
 const Attendance = {
   async findByRehearsalAndUser(rehearsalId, userId) {
@@ -34,11 +36,13 @@ const Attendance = {
     return rows;
   },
 
-  // Everything a musician has accepted in one season, with the venue resolved
-  // the way the rehearsal list resolves it, for the calendar export.
+  // What a musician has accepted and still has ahead of them in one season,
+  // with the venue resolved the way the rehearsal list resolves it. Matches the
+  // musician rehearsal list, so the export count and the file agree.
   async findAcceptedInSeason(userId, seasonId) {
     const [rows] = await pool.execute(
       `SELECT r.id, r.title, r.rehearsal_date, r.duration_minutes, r.notes, r.concert_id,
+              c.concert_time, c.warmup_time,
               COALESCE(l.name, c.venue, r.location) AS location,
               COALESCE(l.address, c.venue_address) AS location_address
        FROM attendance a
@@ -46,10 +50,47 @@ const Attendance = {
        LEFT JOIN locations l ON r.location_id = l.id
        LEFT JOIN concerts c ON r.concert_id = c.id
        WHERE a.user_id = ? AND r.season_id = ? AND a.status = 'attending'
+         AND ${NOT_OVER}
        ORDER BY r.rehearsal_date ASC`,
-      [userId, seasonId]
+      [userId, seasonId, appNow()]
     );
     return rows;
+  },
+
+  // Per-member declared-attendance totals for one season.
+  //
+  // The denominator is rehearsals that have already FINISHED — counting ones
+  // still to come would drag every rate down in proportion to how early in the
+  // season you look. Uses appNow() rather than SQL NOW() for the same reason
+  // the rest of the app does: see config/time.js.
+  //
+  // No role filter: an admin or maestro who also plays gets counted like
+  // anyone else, and the caller decides who to display.
+  async getSeasonStats(seasonId) {
+    const [rows] = await pool.execute(
+      `SELECT u.id AS user_id,
+              COUNT(r.id) AS total,
+              CAST(SUM(a.status = 'attending') AS UNSIGNED)     AS attending,
+              CAST(SUM(a.status = 'maybe') AS UNSIGNED)         AS maybe,
+              CAST(SUM(a.status = 'not_attending') AS UNSIGNED) AS not_attending,
+              CAST(SUM(a.status IS NOT NULL) AS UNSIGNED)       AS responded
+       FROM users u
+       CROSS JOIN rehearsals r
+       LEFT JOIN attendance a ON a.rehearsal_id = r.id AND a.user_id = u.id
+       WHERE r.season_id = ?
+         AND DATE_ADD(r.rehearsal_date, INTERVAL COALESCE(r.duration_minutes, 120) MINUTE) < ?
+       GROUP BY u.id`,
+      [seasonId, appNow()]
+    );
+    // mysql2 returns SUM() as a string; callers want numbers.
+    return rows.map((r) => ({
+      user_id: r.user_id,
+      total: Number(r.total),
+      attending: Number(r.attending),
+      maybe: Number(r.maybe),
+      not_attending: Number(r.not_attending),
+      responded: Number(r.responded),
+    }));
   },
 
   async upsert({ rehearsal_id, user_id, status, notes }) {

@@ -4,6 +4,7 @@ import { useLanguage } from '../context/LanguageContext';
 import apiClient from '../services/apiClient';
 import FeatureGrid from '../components/Common/FeatureGrid';
 import Icon from '../components/Common/Icon';
+import ConcertTimes from '../components/Common/ConcertTimes';
 
 export default function MusicianDashboard() {
   const { user } = useAuth();
@@ -143,7 +144,8 @@ export default function MusicianDashboard() {
   const locale = currentLang.locale;
   const formatDate = (dateStr) => new Date(String(dateStr).replace('Z', '')).toLocaleDateString(locale, { weekday: 'short', month: 'short', day: 'numeric' });
   const formatTime = (dateStr) => new Date(String(dateStr).replace('Z', '')).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
-  const isPast = (dateStr) => new Date(String(dateStr).replace('Z', '')) < new Date();
+  const isPast = (dateStr, durationMinutes) =>
+    new Date(String(dateStr).replace('Z', '')).getTime() + (durationMinutes || 120) * 60000 < Date.now();
 
   if (loading) {
     return (
@@ -229,7 +231,7 @@ export default function MusicianDashboard() {
           ) : rehearsals.length === 0 ? (
             <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-2xl shadow-sm">
               <span className="text-4xl">&#128197;</span>
-              <p className="text-gray-500 dark:text-gray-400 mt-3">{t('noSeasonsRehearsals')}</p>
+              <p className="text-gray-500 dark:text-gray-400 mt-3">{t('musicianDashboard.noUpcoming')}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -247,7 +249,7 @@ export default function MusicianDashboard() {
                 const currentStatus = myAttendance[rehearsal.id];
                 const statusConf = currentStatus ? STATUS_CONFIG[currentStatus] : null;
                 const isUpdating = updating === rehearsal.id;
-                const past = isPast(rehearsal.rehearsal_date);
+                const past = isPast(rehearsal.rehearsal_date, rehearsal.duration_minutes);
                 const isConcert = !!rehearsal.concert_id;
 
                 return (
@@ -277,7 +279,9 @@ export default function MusicianDashboard() {
 
                       <div className="flex flex-wrap gap-3 text-sm text-gray-600 dark:text-gray-300 mt-3">
                         <span className="flex items-center gap-1">&#128197; {formatDate(rehearsal.rehearsal_date)}</span>
-                        <span className="flex items-center gap-1">&#128336; {formatTime(rehearsal.rehearsal_date)}</span>
+                        {isConcert && (rehearsal.warmup_time || rehearsal.concert_time)
+                          ? <ConcertTimes warmup={rehearsal.warmup_time} start={rehearsal.concert_time} />
+                          : <span className="flex items-center gap-1">&#128336; {formatTime(rehearsal.rehearsal_date)}</span>}
                         {rehearsal.location && <span className="flex items-center gap-1">&#128205; {rehearsal.location}</span>}
                         {!isConcert && <span className="flex items-center gap-1">&#9201; {rehearsal.duration_minutes} {t('common.min')}</span>}
                       </div>

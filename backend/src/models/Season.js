@@ -1,5 +1,48 @@
 const { pool } = require('../config/database');
 
+// A concert is a date plus two optional clock times: `warmup_time` is when the
+// players are called in for the raccord, `concert_time` when the audience
+// hears the first note. The mirror rehearsal — the row that carries attendance
+// and feeds the .ics export — starts at the raccord, because that is the
+// moment a musician actually has to be there.
+const CONCERT_LENGTH_MINUTES = 180;
+
+// A <input type="time"> sends 'HH:MM'; MySQL reads back 'HH:MM:SS'. Normalise
+// both to the column format, and treat an empty string as "not set".
+function toSqlTime(value) {
+  if (!value) return null;
+  const m = String(value).match(/^(\d{1,2}):(\d{2})/);
+  if (!m) return null;
+  return `${m[1].padStart(2, '0')}:${m[2]}:00`;
+}
+
+function minutesOfDay(sqlTime) {
+  const [h, m] = sqlTime.split(':');
+  return Number(h) * 60 + Number(m);
+}
+
+function concertSchedule(c) {
+  const date = String(c.concert_date).split('T')[0];
+  const concertTime = toSqlTime(c.concert_time);
+  const warmupTime = toSqlTime(c.warmup_time);
+  const start = warmupTime || concertTime;
+
+  let duration = CONCERT_LENGTH_MINUTES;
+  if (warmupTime && concertTime) {
+    // A raccord logged after the downbeat is nonsense; ignore the gap rather
+    // than produce a rehearsal that ends before it starts.
+    duration += Math.max(0, minutesOfDay(concertTime) - minutesOfDay(warmupTime));
+  }
+
+  return {
+    concertTime,
+    warmupTime,
+    // No time given at all keeps the old behaviour: midnight on the day.
+    rehearsalDate: start ? `${date} ${start}` : `${date} 00:00:00`,
+    duration,
+  };
+}
+
 const Season = {
   async findById(id) {
     const [rows] = await pool.execute('SELECT * FROM seasons WHERE id = ?', [id]);
@@ -109,27 +152,29 @@ const Season = {
     }
 
     for (const c of concerts) {
+      const { concertTime, warmupTime, rehearsalDate, duration } = concertSchedule(c);
+
       if (c.id && existingIds.includes(c.id)) {
         // Update existing concert
         await pool.execute(
-          'UPDATE concerts SET concert_date = ?, label = ?, venue = ?, venue_address = ? WHERE id = ?',
-          [c.concert_date, c.label || null, c.venue || null, c.venue_address || null, c.id]
+          'UPDATE concerts SET concert_date = ?, concert_time = ?, warmup_time = ?, label = ?, venue = ?, venue_address = ? WHERE id = ?',
+          [c.concert_date, concertTime, warmupTime, c.label || null, c.venue || null, c.venue_address || null, c.id]
         );
         // Update linked rehearsal
         await pool.execute(
-          'UPDATE rehearsals SET title = ?, location = ?, rehearsal_date = ? WHERE concert_id = ?',
-          [c.label || 'Concert', c.venue || null, c.concert_date, c.id]
+          'UPDATE rehearsals SET title = ?, location = ?, rehearsal_date = ?, duration_minutes = ? WHERE concert_id = ?',
+          [c.label || 'Concert', c.venue || null, rehearsalDate, duration, c.id]
         );
       } else {
         // Insert new concert
         const [result] = await pool.execute(
-          'INSERT INTO concerts (season_id, concert_date, label, venue, venue_address) VALUES (?, ?, ?, ?, ?)',
-          [seasonId, c.concert_date, c.label || null, c.venue || null, c.venue_address || null]
+          'INSERT INTO concerts (season_id, concert_date, concert_time, warmup_time, label, venue, venue_address) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          [seasonId, c.concert_date, concertTime, warmupTime, c.label || null, c.venue || null, c.venue_address || null]
         );
         // Create linked rehearsal entry for attendance tracking
         await pool.execute(
           'INSERT INTO rehearsals (season_id, title, location, rehearsal_date, duration_minutes, concert_id) VALUES (?, ?, ?, ?, ?, ?)',
-          [seasonId, c.label || 'Concert', c.venue || null, c.concert_date, 180, result.insertId]
+          [seasonId, c.label || 'Concert', c.venue || null, rehearsalDate, duration, result.insertId]
         );
       }
     }
@@ -137,3 +182,4 @@ const Season = {
 };
 
 module.exports = Season;
+module.exports.concertSchedule = concertSchedule;

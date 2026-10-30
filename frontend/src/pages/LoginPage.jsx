@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import apiClient from '../services/apiClient';
+import Brand from '../components/Common/Brand';
 
 export default function LoginPage() {
   const { loginWithToken } = useAuth();
@@ -14,6 +15,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
   const [devCode, setDevCode] = useState('');
+  const [expiresInMinutes, setExpiresInMinutes] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const handleRequestCode = async (e) => {
@@ -26,6 +28,7 @@ export default function LoginPage() {
       const res = await apiClient.post('/auth/request-code', { email });
       setStep('code');
       setInfo(res.data.message || 'A 6-digit code has been sent to your email.');
+      if (res.data.expiresInMinutes) setExpiresInMinutes(res.data.expiresInMinutes);
       if (res.data.devCode) {
         setDevCode(res.data.devCode);
       }
@@ -85,8 +88,7 @@ export default function LoginPage() {
 
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Philharmonique d'Uccle" className="h-20 mx-auto" />
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mt-3">Philharmonique d'Uccle</h1>
+          <Brand variant="hero" />
           <p className="text-gray-500 dark:text-gray-400 mt-1">
             {step === 'email' && t('login.signInEmail')}
             {step === 'code' && t('login.enterCode')}
@@ -156,8 +158,14 @@ export default function LoginPage() {
                 autoFocus
                 required
               />
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5">{t('login.codeExpires')}</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5">{t('login.codeExpires', { minutes: expiresInMinutes ?? 15 })}</p>
             </div>
+
+            {!devCode && (
+              <p className="text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700/40 rounded-xl px-3 py-2.5 leading-relaxed">
+                {t('login.checkSpam')}
+              </p>
+            )}
 
             <button
               type="submit"

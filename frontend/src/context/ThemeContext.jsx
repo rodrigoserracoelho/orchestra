@@ -1,10 +1,11 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { getItem, setItem } from '../services/storage';
 
 const ThemeContext = createContext(null);
 
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => {
-    const saved = localStorage.getItem('theme');
+    const saved = getItem('theme');
     if (saved) return saved;
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   });
@@ -16,7 +17,7 @@ export function ThemeProvider({ children }) {
     } else {
       root.classList.remove('dark');
     }
-    localStorage.setItem('theme', theme);
+    setItem('theme', theme);
   }, [theme]);
 
   const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'));

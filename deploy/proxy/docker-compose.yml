@@ -1,0 +1,51 @@
+# Shared edge proxy. Owns :80/:443 for every site on this VM; each app stack
+# runs portless behind it and is reached over the external "web" network.
+#
+# Lives on the server at /home/ubuntu/proxy.
+#   docker network create web        # once
+#   docker compose up -d
+
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: edge-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./conf.d:/etc/nginx/conf.d:ro
+      - certbot_www:/var/www/certbot:ro
+      - certbot_certs:/etc/letsencrypt:ro
+    networks:
+      - web
+
+  certbot:
+    image: certbot/certbot
+    container_name: edge-certbot
+    # Certbot only writes into the shared volume — it never talks to another
+    # container — so it stays on the default bridge. On a user-defined network
+    # every lookup goes through dockerd's embedded resolver at 127.0.0.11, and
+    # snap confinement blocks dockerd from forwarding it ("write: permission
+    # denied"). On the default bridge the real nameserver is written straight
+    # into resolv.conf and the container queries it directly.
+    network_mode: bridge
+    dns:
+      - 213.186.33.99
+    volumes:
+      - certbot_www:/var/www/certbot
+      - certbot_certs:/etc/letsencrypt
+
+volumes:
+  # Adopted from the original single-site orchestra stack, so the live
+  # certificate and its renewal config carry over untouched — nothing is re-issued.
+  certbot_www:
+    external: true
+    name: orchestra_certbot_www
+  certbot_certs:
+    external: true
+    name: orchestra_certbot_certs
+
+networks:
+  web:
+    external: true

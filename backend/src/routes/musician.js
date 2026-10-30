@@ -88,7 +88,7 @@ router.get('/seasons', async (req, res) => {
 
 // Rehearsals
 router.get('/rehearsals', rehearsalController.upcoming);
-router.get('/seasons/:seasonId/rehearsals', rehearsalController.listBySeason);
+router.get('/seasons/:seasonId/rehearsals', rehearsalController.listBySeasonUpcoming);
 
 // Date polls ("Doodle") — the controller decides who a poll is addressed to
 router.get('/polls', pollController.myOpenPolls);

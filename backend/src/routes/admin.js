@@ -62,6 +62,7 @@ router.delete('/locations/:id', locationController.delete);
 // Attendance
 router.get('/rehearsals/:id/attendance', attendanceController.byRehearsal);
 router.get('/seasons/:seasonId/attendance', attendanceController.seasonGrid);
+router.get('/seasons/:seasonId/attendance-stats', attendanceController.seasonStats);
 
 // Payments
 router.get('/seasons/:seasonId/payments', async (req, res) => {

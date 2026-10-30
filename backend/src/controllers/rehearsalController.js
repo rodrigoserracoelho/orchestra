@@ -1,19 +1,28 @@
 const Rehearsal = require('../models/Rehearsal');
 const Season = require('../models/Season');
 
+async function listSeason(req, res, opts) {
+  try {
+    const season = await Season.findById(req.params.seasonId);
+    if (!season) {
+      return res.status(404).json({ success: false, error: 'not_found', message: 'Season not found' });
+    }
+    const rehearsals = await Rehearsal.findBySeasonId(req.params.seasonId, opts);
+    res.json({ success: true, data: rehearsals });
+  } catch (error) {
+    console.error('Rehearsal list error:', error);
+    res.status(500).json({ success: false, error: 'server_error', message: 'Failed to fetch rehearsals' });
+  }
+}
+
 const rehearsalController = {
   async listBySeason(req, res) {
-    try {
-      const season = await Season.findById(req.params.seasonId);
-      if (!season) {
-        return res.status(404).json({ success: false, error: 'not_found', message: 'Season not found' });
-      }
-      const rehearsals = await Rehearsal.findBySeasonId(req.params.seasonId);
-      res.json({ success: true, data: rehearsals });
-    } catch (error) {
-      console.error('Rehearsal list error:', error);
-      res.status(500).json({ success: false, error: 'server_error', message: 'Failed to fetch rehearsals' });
-    }
+    return listSeason(req, res, { upcomingOnly: false });
+  },
+
+  // Musicians see what is still ahead of them; staff keep the full season.
+  async listBySeasonUpcoming(req, res) {
+    return listSeason(req, res, { upcomingOnly: true });
   },
 
   async get(req, res) {

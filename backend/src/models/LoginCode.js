@@ -1,7 +1,10 @@
 const { pool } = require('../config/database');
 const crypto = require('crypto');
 
-const CODE_EXPIRY_MINUTES = 5;
+// Email delivery plus the time it takes someone to notice the mail, open it and
+// type six digits routinely exceeds five minutes, which made expiry — and the
+// failed login that follows — a common event rather than an edge case.
+const CODE_EXPIRY_MINUTES = 15;
 
 const LoginCode = {
   generateCode() {

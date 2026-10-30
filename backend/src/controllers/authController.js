@@ -28,16 +28,35 @@ const authController = {
         return res.json({ success: true, message: 'If this email is registered, a code has been sent.' });
       }
 
-      const { code } = await LoginCode.create(email);
+      const { code, expires_minutes } = await LoginCode.create(email);
       const emailResult = await sendLoginCode(email, code);
 
-      // In development, include the code in the response so it shows on screen
-      const response = { success: true, message: 'Login code sent to your email.' };
-      if (env.nodeEnv === 'development' && !emailResult.sent) {
-        response.devCode = code;
-        response.message = 'Code generated (check below — email not configured).';
+      // sendLoginCode never throws — it returns { sent: false } when every
+      // provider failed. Reporting success anyway sends the user to the code
+      // screen to wait for a mail that will never arrive, with nothing on
+      // screen to suggest anything went wrong.
+      if (!emailResult.sent) {
+        if (env.nodeEnv === 'development') {
+          // Dev has no mail provider; show the code on screen instead.
+          return res.json({
+            success: true,
+            devCode: code,
+            expiresInMinutes: expires_minutes,
+            message: 'Code generated (check below — email not configured).',
+          });
+        }
+        return res.status(502).json({
+          success: false,
+          error: 'email_failed',
+          message: 'We could not send the email just now. Please try again in a moment.',
+        });
       }
-      res.json(response);
+
+      res.json({
+        success: true,
+        expiresInMinutes: expires_minutes,
+        message: 'Login code sent to your email.',
+      });
     } catch (error) {
       console.error('Request code error:', error);
       res.status(500).json({ success: false, error: 'server_error', message: 'Failed to send code' });

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import apiClient from '../services/apiClient';
+import { ORG_LEGAL_NAME } from '../config/branding';
 
 export default function PublicHome() {
   const { t, currentLang } = useLanguage();
@@ -42,7 +43,7 @@ export default function PublicHome() {
         </section>
       ) : (
         <section className="text-center py-12">
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Association Philharmonique d'Uccle</h1>
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">{ORG_LEGAL_NAME}</h1>
           <p className="text-lg text-gray-500 dark:text-gray-400 mt-3">{t('public.welcomeSubtitle')}</p>
         </section>
       )}
@@ -59,7 +60,10 @@ export default function PublicHome() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {concerts.map((c) => (
               <div key={c.id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-5">
-                <div className="text-sm font-medium text-primary-600 dark:text-primary-400 mb-1">{formatDate(c.concert_date)}</div>
+                <div className="text-sm font-medium text-primary-600 dark:text-primary-400 mb-1">
+                  {formatDate(c.concert_date)}
+                  {c.concert_time && <span> &middot; {String(c.concert_time).slice(0, 5)}</span>}
+                </div>
                 {c.label && <h3 className="font-semibold text-gray-800 dark:text-gray-100">{c.label}</h3>}
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{c.season_name}</p>
                 {c.maestro && <p className="text-sm text-gray-500 dark:text-gray-400">&#127932; {c.maestro}</p>}

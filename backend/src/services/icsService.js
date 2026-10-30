@@ -1,7 +1,7 @@
 // RFC 5545 calendar feed. Rehearsal times are stored as wall-clock Brussels
 // time, so events carry TZID=Europe/Brussels with the matching VTIMEZONE
 // rather than being converted to UTC (which would need per-date DST maths).
-const TZID = 'Europe/Brussels';
+const { APP_TZ: TZID } = require('../config/time');
 
 const VTIMEZONE = [
   'BEGIN:VTIMEZONE',
@@ -71,9 +71,22 @@ function addMinutes(value, minutes) {
   return d;
 }
 
+// A concert event starts at the raccord, not the downbeat, so the entry a
+// musician sees in their calendar would otherwise give no hint when the
+// audience arrives. Spell both out. The wording stays language-neutral —
+// this file has no access to the user's locale — and "raccord" is the term
+// the orchestra uses in all three languages.
+function concertScheduleNote(ev) {
+  const hhmm = (v) => String(v).slice(0, 5);
+  const parts = [];
+  if (ev.warmup_time) parts.push(`Raccord ${hhmm(ev.warmup_time)}`);
+  if (ev.concert_time) parts.push(`Concert ${hhmm(ev.concert_time)}`);
+  return parts.length ? parts.join(' \u00b7 ') : null;
+}
+
 /**
  * @param {Array} events  rows with id, title, rehearsal_date, duration_minutes,
- *                        location, notes, concert_id
+ *                        location, notes, concert_id, concert_time, warmup_time
  * @param {object} opts   { calendarName, host, stamp }
  */
 function buildCalendar(events, { calendarName = 'Orchestra', host = 'orchestra', stamp } = {}) {
@@ -100,7 +113,9 @@ function buildCalendar(events, { calendarName = 'Orchestra', host = 'orchestra',
       `SUMMARY:${escapeText(ev.title)}`,
     );
     if (ev.location) lines.push(`LOCATION:${escapeText(ev.location)}`);
-    if (ev.notes) lines.push(`DESCRIPTION:${escapeText(ev.notes)}`);
+    const schedule = ev.concert_id ? concertScheduleNote(ev) : null;
+    const description = [schedule, ev.notes].filter(Boolean).join('\n');
+    if (description) lines.push(`DESCRIPTION:${escapeText(description)}`);
     lines.push(
       `CATEGORIES:${ev.concert_id ? 'Concert' : 'Rehearsal'}`,
       'STATUS:CONFIRMED',

@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import apiClient from '../services/apiClient';
 import FeatureGrid from '../components/Common/FeatureGrid';
+import ConcertTimes from '../components/Common/ConcertTimes';
 
 export default function SectionLeaderDashboard() {
   const { user } = useAuth();
@@ -123,7 +124,10 @@ export default function SectionLeaderDashboard() {
                         {r.title}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {formatDate(r.rehearsal_date)} &middot; {formatTime(r.rehearsal_date)}
+                        {formatDate(r.rehearsal_date)} &middot;{' '}
+                        {isConcert && (r.warmup_time || r.concert_time)
+                          ? <ConcertTimes warmup={r.warmup_time} start={r.concert_time} />
+                          : formatTime(r.rehearsal_date)}
                         {r.location && <span className="ml-2">&#128205; {r.location}</span>}
                       </p>
                     </div>

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import apiClient from '../services/apiClient';
+import { getItem, setItem, removeItem, getJSON, setJSON } from '../services/storage';
 
 const AuthContext = createContext(null);
 
@@ -9,19 +10,19 @@ export function AuthProvider({ children }) {
   const [viewMode, setViewMode] = useState('role'); // 'role' | 'musician' — for admin, maestro, section_leader
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const savedUser = localStorage.getItem('user');
+    const token = getItem('token');
+    const savedUser = getJSON('user');   // never throws on a corrupt entry
     if (token && savedUser) {
-      setUser(JSON.parse(savedUser));
+      setUser(savedUser);
       // Verify token is still valid
       apiClient.get('/auth/me')
         .then((res) => {
           setUser(res.data.data);
-          localStorage.setItem('user', JSON.stringify(res.data.data));
+          setJSON('user', res.data.data);
         })
         .catch(() => {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
+          removeItem('token');
+          removeItem('user');
           setUser(null);
         })
         .finally(() => setLoading(false));
@@ -41,8 +42,8 @@ export function AuthProvider({ children }) {
 
   // Called after successful code verification, admin password login, or registration
   const loginWithToken = ({ user: userData, token }) => {
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(userData));
+    setItem('token', token);
+    setJSON('user', userData);
     setUser(userData);
   };
 
@@ -50,15 +51,15 @@ export function AuthProvider({ children }) {
     try {
       const res = await apiClient.get('/auth/me');
       setUser(res.data.data);
-      localStorage.setItem('user', JSON.stringify(res.data.data));
+      setJSON('user', res.data.data);
     } catch {
       // ignore
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    removeItem('token');
+    removeItem('user');
     setUser(null);
   };
 

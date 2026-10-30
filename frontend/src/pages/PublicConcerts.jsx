@@ -33,7 +33,10 @@ export default function PublicConcerts() {
             <div key={c.id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-5">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div>
-                  <div className="text-sm font-medium text-primary-600 dark:text-primary-400">{formatDate(c.concert_date)}</div>
+                  <div className="text-sm font-medium text-primary-600 dark:text-primary-400">
+                    {formatDate(c.concert_date)}
+                    {c.concert_time && <span> &middot; {String(c.concert_time).slice(0, 5)}</span>}
+                  </div>
                   {c.label && <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mt-0.5">{c.label}</h2>}
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{c.season_name}</p>
                   {c.maestro && <p className="text-sm text-gray-500 dark:text-gray-400">&#127932; {c.maestro}</p>}

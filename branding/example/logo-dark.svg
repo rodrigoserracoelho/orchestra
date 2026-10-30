@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="Orchestra">
+  <!-- Placeholder mark for the example brand. Replace with real artwork. -->
+  <circle cx="24" cy="24" r="22" fill="none" stroke="#f9fafb" stroke-width="2"/>
+  <path d="M19 32V16l12-2v16" fill="none" stroke="#f9fafb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="16" cy="32" r="3.5" fill="#91a7ff"/>
+  <circle cx="28" cy="30" r="3.5" fill="#91a7ff"/>
+</svg>

@@ -48,3 +48,14 @@ Thumbs.db
 
 # Claude config (personal)
 .claude/
+
+# Per-instance deployment config and artwork. This repo is public: the real
+# files name the server, the domains and the orchestras, so only the *example*
+# templates are tracked. (deploy-new.sh, deploy/migrate-to-edge-proxy.sh and
+# deploy/baseline.sql are already covered by the *.sh and *.sql rules above.)
+deploy/instances/*.env
+!deploy/instances/example.env
+deploy/proxy/conf.d/*.conf
+!deploy/proxy/conf.d/*.example.conf
+branding/*/
+!branding/example/

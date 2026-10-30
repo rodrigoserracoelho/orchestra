@@ -11,6 +11,9 @@ export default function AdminMusicians() {
   const [musicians, setMusicians] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [neverLoggedIn, setNeverLoggedIn] = useState(false);
+  const [lowAttendance, setLowAttendance] = useState(false);
+  const [attendance, setAttendance] = useState({});
   const [showForm, setShowForm] = useState(false);
   const [editMusician, setEditMusician] = useState(null);
   const [form, setForm] = useState({ name: '', email: '', instrument: '', part: '', birthdate: '', phone: '', role: 'musician' });
@@ -31,7 +34,7 @@ export default function AdminMusicians() {
   useEffect(() => { loadMusicians(); loadSeasons(); }, []);
 
   useEffect(() => {
-    if (selectedSeason) loadPayments(selectedSeason);
+    if (selectedSeason) { loadPayments(selectedSeason); loadAttendance(selectedSeason); }
   }, [selectedSeason]);
 
   const loadMusicians = async () => {
@@ -54,6 +57,17 @@ export default function AdminMusicians() {
       setSelectedSeason(withFee ? withFee.id : allSeasons[0]?.id || null);
     } catch (e) {
       console.error('Failed to load seasons:', e);
+    }
+  };
+
+  const loadAttendance = async (seasonId) => {
+    try {
+      const res = await apiClient.get(`/admin/seasons/${seasonId}/attendance-stats`);
+      const map = {};
+      res.data.data.forEach((r) => { map[r.user_id] = r; });
+      setAttendance(map);
+    } catch (e) {
+      setAttendance({});
     }
   };
 
@@ -187,6 +201,17 @@ export default function AdminMusicians() {
   const currentSeason = seasons.find((s) => s.id === selectedSeason);
   const showPayments = currentSeason && currentSeason.season_fee;
 
+  const rateFor = (id) => {
+    const a = attendance[id];
+    if (!a || !a.total) return null;          // season has no finished rehearsals yet
+    return { ...a, pct: Math.round((a.attending / a.total) * 100) };
+  };
+  const LOW_ATTENDANCE_PCT = 50;
+  const lowAttendanceCount = musicians.filter((m) => {
+    const r = rateFor(m.id);
+    return r && r.pct < LOW_ATTENDANCE_PCT;
+  }).length;
+
   const filtered = musicians.filter((m) => {
     const matchesSearch = m.name.toLowerCase().includes(search.toLowerCase()) ||
       (m.instrument && m.instrument.toLowerCase().includes(search.toLowerCase())) ||
@@ -196,8 +221,18 @@ export default function AdminMusicians() {
     if (activeFilter === 'inactive' && m.active !== false) return false;
     if (showPayments && paymentFilter === 'paid' && !payments[m.id]) return false;
     if (showPayments && paymentFilter === 'unpaid' && payments[m.id]) return false;
+    // A session row is only ever created by a successful sign-in, so its
+    // absence means this member has never logged in.
+    if (neverLoggedIn && m.last_seen_at) return false;
+    if (lowAttendance) {
+      const r = rateFor(m.id);
+      if (!r || r.pct >= LOW_ATTENDANCE_PCT) return false;
+    }
     return true;
   });
+
+  const neverLoggedInCount = musicians.filter((m) => !m.last_seen_at).length;
+
 
   const byInstrument = {};
   filtered.forEach((m) => {
@@ -252,6 +287,25 @@ export default function AdminMusicians() {
             {t(`adminMusicians.filter${f.charAt(0).toUpperCase() + f.slice(1)}`)}
           </button>
         ))}
+        <span className="text-gray-300 dark:text-gray-600">|</span>
+        <button onClick={() => setNeverLoggedIn(!neverLoggedIn)}
+          className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+            neverLoggedIn
+              ? 'bg-primary-600 text-white'
+              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+          }`}>
+          {t('adminMusicians.filterNeverLoggedIn')} ({neverLoggedInCount})
+        </button>
+        {selectedSeason && lowAttendanceCount > 0 && (
+          <button onClick={() => setLowAttendance(!lowAttendance)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+              lowAttendance
+                ? 'bg-primary-600 text-white'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+            }`}>
+            {t('adminMusicians.filterLowAttendance')} ({lowAttendanceCount})
+          </button>
+        )}
         {showPayments && (
           <>
             <span className="text-gray-300 dark:text-gray-600">|</span>
@@ -424,6 +478,27 @@ export default function AdminMusicians() {
                           {m.email}
                           {m.phone && <span className="ml-2">{m.phone}</span>}
                         </p>
+                        {(() => {
+                          const r = rateFor(m.id);
+                          if (!r) return null;
+                          return (
+                            <p className={`text-xs mt-0.5 font-medium ${
+                              r.pct < LOW_ATTENDANCE_PCT
+                                ? 'text-red-600 dark:text-red-400'
+                                : r.pct < 75
+                                  ? 'text-yellow-700 dark:text-yellow-400'
+                                  : 'text-green-700 dark:text-green-400'
+                            }`}
+                              title={t('adminMusicians.attendanceTitle', {
+                                attending: r.attending, maybe: r.maybe,
+                                no: r.not_attending, noReply: r.total - r.responded,
+                              })}>
+                              {t('adminMusicians.attendanceRate', {
+                                attending: r.attending, total: r.total, pct: r.pct,
+                              })}
+                            </p>
+                          );
+                        })()}
                       </div>
                     </div>
                     <div className="flex items-center gap-1 flex-shrink-0">
@@ -431,6 +506,11 @@ export default function AdminMusicians() {
                         <span className="text-xs text-gray-400 dark:text-gray-500 block">
                           {t('common.joined', { date: new Date(m.created_at).toLocaleDateString(currentLang.locale) })}
                         </span>
+                        {!m.last_seen_at && (
+                          <span className="text-xs text-gray-400 dark:text-gray-500 italic">
+                            {t('adminMusicians.neverLoggedIn')}
+                          </span>
+                        )}
                         {m.last_seen_at && (
                           <span className="text-xs text-gray-400 dark:text-gray-500 block">
                             {t('adminMusicians.lastSeen', { date: new Date(m.last_seen_at).toLocaleDateString(currentLang.locale, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) })}

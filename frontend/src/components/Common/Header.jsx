@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
+import Brand from './Brand';
 
 // Deliberately link-free: navigation lives in the FeatureGrid on each role's
 // home, so the bar stays usable on a phone. The logo is the way back home.
@@ -22,8 +23,7 @@ export default function Header() {
     <header className="fixed top-0 left-0 right-0 bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-900/30 z-50">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
-          <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Philharmonique d'Uccle" className="h-10" />
-          <span className="font-bold text-lg text-gray-800 dark:text-gray-100 hidden sm:inline">Philharmonique d'Uccle</span>
+          <Brand />
         </Link>
 
         <div className="flex items-center gap-1.5 sm:gap-3">
