@@ -11,7 +11,7 @@ A mobile-first web app for managing an orchestra: rehearsal attendance, date pol
 - **Frontend**: React 18 + Vite, Tailwind CSS, Tiptap rich text editor
 - **Backend**: Node.js + Express, MySQL 8.0
 - **Auth**: JWT + email-based login codes (via SMTP or [Resend](https://resend.com))
-- **Infrastructure**: Docker multi-stage build, NGINX reverse proxy, Let's Encrypt SSL
+- **Infrastructure**: Docker multi-stage build, shared NGINX edge proxy (multi-instance), Let's Encrypt SSL
 - **i18n**: English, French, Dutch (Belgian locales)
 
 ## Features
@@ -109,30 +109,90 @@ Open http://localhost:5173 in your browser.
 
 ## Production Deployment
 
-The app is fully containerized with Docker. Create your own deploy script or use Docker Compose directly:
+One VM can host several orchestras. Two separate things run on it:
+
+1. **A shared edge proxy** — `deploy/proxy/`: `edge-nginx` + `edge-certbot`. It owns
+   `:80`/`:443`, holds one `conf.d/<domain>.conf` per site and one Let's Encrypt
+   lineage per domain.
+2. **One app stack per orchestra** — the root `docker-compose.yml`: MySQL + app,
+   **no published ports**, reached by the proxy over the external `web` Docker
+   network. `STACK` prefixes the container names (`<STACK>-app`, `<STACK>-mysql`)
+   so instances on the same host never collide.
+
+```
+                          :80 / :443
+                               |
+                   +-----------v-----------+
+                   |  edge-nginx           |   deploy/proxy/
+                   |  edge-certbot         |   one conf.d/<domain>.conf per site
+                   +-----------+-----------+
+                               |  "web" network (external)
+              +----------------+----------------+
+              |                                 |
+    +---------v---------+             +---------v---------+
+    | <stack-a>-app     |             | <stack-b>-app     |
+    | <stack-a>-mysql   |             | <stack-b>-mysql   |
+    +-------------------+             +-------------------+
+       "internal" network                "internal" network
+```
+
+### Defining an instance
+
+Three things describe one deployment:
+
+| Path | Holds |
+| --- | --- |
+| `deploy/instances/<name>.env` | where to deploy, `STACK`, `DOMAIN`, org names, logo flags |
+| `branding/<name>/` | `logo.<ext>`, `logo-dark.<ext>`, `favicon.ico` — baked into the image at build time |
+| `deploy/proxy/conf.d/<domain>.conf` | that domain's server block on the edge proxy |
+
+Only the templates are committed — `deploy/instances/example.env`,
+`branding/example/` and `deploy/proxy/conf.d/*.example.conf`. The real files are
+gitignored: this repository is public and they name the server you deploy to.
+See [deploy/instances/README.md](deploy/instances/README.md) and
+[branding/README.md](branding/README.md).
+
+Secrets are never in the repo. `JWT_SECRET`, the DB credentials and
+`FRONTEND_URL` live in `.env` inside `REMOTE_PATH` on the server, which the
+deploy script reads remotely and never copies back.
+
+### Deploying
 
 ```bash
-cp .env.example .env          # fill in your production values
-cp nginx.conf.example nginx.conf  # replace yourdomain.com with your domain
-docker compose up -d --build
+./deploy-new.sh <instance>                # keep data, apply pending migrations
+./deploy-new.sh <instance> --erase        # DESTRUCTIVE: drops all data, rebuilds from the baseline
+./deploy-new.sh <instance> --local-build  # build the image here, ship it over ssh
+REBUILD=1 ./deploy-new.sh <instance>      # force a --no-cache image build
 ```
 
-### Deploy Modes
+Run with no arguments to list the instances it can see. The script never touches
+nginx or certbot — TLS belongs to the edge proxy.
 
-1. **Fresh install** — wipes the database, applies base schema + all migrations
-2. **Keep data** — preserves existing data, applies only pending migrations
+`deploy-new.sh` itself is gitignored, along with every other `*.sh`, because it
+carries personal deployment config.
 
-### Docker Architecture
+### Schema on a fresh install
 
-```
-NGINX (80/443) → App container (3001) → MySQL (3306)
-     ↑
-  certbot (auto-renewal via cron)
-```
+`001_schema.sql` was edited in place over the years and no longer composes with
+`002+` — those migrations try to make changes it already contains. So a fresh
+install applies `deploy/baseline.sql`, a squashed schema-only dump of the real
+current schema, and records every migration as applied. An existing database
+just runs whatever is still pending. Both paths converge on the same schema.
+
+> Because a fresh install **records migrations without running them**, any new
+> migration must also be reflected in `deploy/baseline.sql`, or new instances
+> will silently miss it.
 
 ### SSL
 
-The included `nginx.conf.example` is configured for Let's Encrypt SSL. On first deploy, obtain certificates using certbot with the webroot method.
+`edge-certbot` renews every lineage in the shared volume using the webroot
+method, with a `--deploy-hook` that reloads `edge-nginx`. Every `:80` server
+block needs its own `.well-known/acme-challenge/` location — that is required
+for renewals, not just first issuance. Verify changes with `certbot renew --dry-run`.
+
+`conf.d/000-default.conf` is a catch-all returning 444. Without it nginx falls
+back to the alphabetically first site and serves one orchestra under another's
+domain and certificate.
 
 ## Online Payments (optional)
 
@@ -217,6 +277,10 @@ nothing has been accepted yet.
 - **Format**: RFC 5545 — CRLF line endings, 75-octet line folding, escaped text,
   and one stable `UID` per rehearsal so re-importing updates an event instead of
   duplicating it.
+- **Concerts** start at the *raccord* and run to the end of the concert, so the
+  entry covers the whole call. Since that start time is not the downbeat, the
+  description spells both out (`Raccord 18:00 · Concert 20:00`) — the exported
+  file has no access to the reader's language, so the wording is fixed.
 - **Times** carry `TZID=Europe/Brussels` with a matching `VTIMEZONE` block rather
   than being converted to UTC, which would need per-date DST arithmetic. This
   relies on the pool's `timezone: 'Z'` setting (see below) — without it every
@@ -295,10 +359,16 @@ Located in `backend/migrations/`. Tracked via a `schema_migrations` table for id
 │   │   ├── services/       # API client (axios)
 │   │   └── translations/   # en.json, fr.json, nl.json
 │   └── index.html
+├── branding/
+│   ├── example/            # Placeholder artwork (real brands are gitignored)
+│   └── README.md           # What each instance must supply
+├── deploy/
+│   ├── instances/          # One <name>.env per deployment (templates only)
+│   ├── proxy/              # Shared edge proxy: compose + conf.d/<domain>.conf
+│   └── baseline.sql        # Squashed schema for fresh installs (gitignored)
 ├── .env.example            # Environment variables template
-├── Dockerfile              # Multi-stage build (frontend + backend)
-├── docker-compose.yml      # MySQL + App + NGINX + Certbot
-└── nginx.conf.example      # SSL termination + reverse proxy template
+├── Dockerfile              # Multi-stage build (frontend + backend + branding)
+└── docker-compose.yml      # One instance: MySQL + App, no published ports
 ```
 
 ## License
